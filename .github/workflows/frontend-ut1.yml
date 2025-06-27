@@ -23,3 +23,9 @@ jobs:
         uses: TingWangPass/actionDemo/.github/actions/common/load-config@main
         with:
           config_file: .github/actions/config/tst-config.yaml
+
+      - name: Read secrets from ps
+        id: get-aws-ps-param
+        uses: TingWangPass/actionDemo/.github/actions/common/get-aws-ps-param@main
+        with:
+         
