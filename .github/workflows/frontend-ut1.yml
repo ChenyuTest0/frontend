@@ -22,6 +22,9 @@ jobs:
         with:
           repository: TingWangPass/actionDemo
           path: actionDemo  # actionDemoリポジトリをこのパスにチェックアウト
+     # `actionDemo` 内のファイルをリスト表示
+      - name: List files in actionDemo directory
+        run: ls -R actionDemo  # `actionDemo` ディレクトリの内容を再帰的にリスト表示
 
       # `actions/common/load-config/action.yaml` のアクションを実行
       - name: Run the action from actionDemo repo
