@@ -1,0 +1,31 @@
+name: Run Action from Another Repo
+
+on:
+  push:
+    branches:
+      - main  # mainブランチにpushされたときにトリガーされます
+  pull_request:
+    branches:
+      - main  # PRがmainに対して作成されたときにトリガーされます
+
+jobs:
+  run_action:
+    runs-on: ubuntu-latest  # 使用するOS
+    steps:
+      # 現在のリポジトリをチェックアウト
+      - name: Checkout current repository
+        uses: actions/checkout@v2
+
+      # 別リポジトリをチェックアウト
+      - name: Checkout actionDemo repository
+        uses: actions/checkout@v2
+        with:
+          repository: TingWangPass/actionDemo
+          path: actionDemo  # actionDemoリポジトリをこのパスにチェックアウト
+
+      # `actions/common/load-config/action.yaml` のアクションを実行
+      - name: Run the action from actionDemo repo
+        id: load-config
+        uses: ./actionDemo/actions/common/load-config
+        with:
+          config_file: .github/actions/config/tst-config.yaml
