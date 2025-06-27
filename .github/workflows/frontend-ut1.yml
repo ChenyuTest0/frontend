@@ -16,22 +16,16 @@ jobs:
       - name: Checkout current repository
         uses: actions/checkout@v2
 
-      # 別リポジトリをチェックアウト
-      - name: Checkout actionDemo repository
-        uses: actions/checkout@v2
-        with:
-          repository: TingWangPass/actionDemo
-          path: actionDemo  # actionDemoリポジトリをこのパスにチェックアウト
-     # `actionDemo` 内のファイルをリスト表示
-      - name: List files in actionDemo directory
-        run: ls -al actionDemo  # `actionDemo` ディレクトリの内容を再帰的にリスト表示
-
-      - name: List files in actionDemo directory
-        run: ls -al  # `actionDemo` ディレクトリの内容を再帰的にリスト表示
+      # # # 別リポジトリをチェックアウト
+      # - name: Checkout actionDemo repository
+      #   uses: actions/checkout@v2
+      #   with:
+      #     repository: TingWangPass/actionDemo
+      #     path: actionDemo  # actionDemoリポジトリをこのパスにチェックアウト
 
       # `actions/common/load-config/action.yaml` のアクションを実行
       - name: Run the action from actionDemo repo
         id: load-config
-        uses: .github/actions/common/load-config
+        uses: TingWangPass/actionDemo/.github/actions/common/load-config@main
         with:
           config_file: .github/actions/config/tst-config.yaml
