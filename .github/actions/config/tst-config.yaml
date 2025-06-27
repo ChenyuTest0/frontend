@@ -3,5 +3,6 @@ test1:
   user: test1_user
   password: test1_password
 test2:
-  user: test2_user
-  password: test2_password
+  user1: 
+    name: test2_user
+    password: test2_password
