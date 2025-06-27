@@ -17,13 +17,6 @@ jobs:
       - name: Checkout current repository
         uses: actions/checkout@v2
 
-      # # # 別リポジトリをチェックアウト
-      # - name: Checkout actionDemo repository
-      #   uses: actions/checkout@v2
-      #   with:
-      #     repository: TingWangPass/actionDemo
-      #     path: actionDemo  # actionDemoリポジトリをこのパスにチェックアウト
-
       # `actions/common/load-config/action.yaml` のアクションを実行
       - name: Run the action from actionDemo repo
         id: load-config
