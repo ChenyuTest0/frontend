@@ -28,4 +28,13 @@ jobs:
       #   id: get-aws-ps-param
       #   uses: TingWangPass/actionDemo/.github/actions/common/get-aws-ps-param@main
       #   with:
-         
+
+      - name: Show Output
+        run: |
+          echo "Outputs:"
+          echo "jdk: ${{ steps.load-config.outputs.jdk }}"
+          echo "slack_teamDomain: ${{ steps.load-config.outputs.slack_teamDomain }}"  # アンダースコア形式で表示
+          echo "slack_webhookUrl: ${{ steps.load-config.outputs.slack_webhookUrl }}"  # アンダースコア形式で表示
+          echo "parameter_store: ${{ steps.load-config.outputs.parameter_store }}"  # test1 オブジェクト全体を表示
+          echo "secret_manager: ${{ steps.load-config.outputs.secret_manager }}"  # test1 オブジェクト全体を表示
+        shell: bash
