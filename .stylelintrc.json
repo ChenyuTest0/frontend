@@ -1,0 +1,51 @@
+{
+  "plugins": ["stylelint-scss"],
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-recommended-scss",
+    "stylelint-config-html/html",
+    "stylelint-config-html/vue",
+    "stylelint-config-recommended-vue"
+  ],
+  "overrides": [
+    {
+      "files": ["**/*.vue"],
+      "customSyntax": "postcss-html"
+    },
+    {
+      "files": ["**/*.scss"],
+      "customSyntax": "postcss-scss"
+    }
+  ],
+  "rules": {
+    "color-function-notation": "legacy",
+    "at-rule-no-unknown": null,
+    "no-empty-source": null,
+    "selector-type-no-unknown": [
+      true,
+      {
+        "ignore": ["custom-elements", "default-namespace"]
+      }
+    ],
+    "no-descending-specificity": null,
+    "scss/at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "tailwind",
+          "apply",
+          "variants",
+          "responsive",
+          "screen"
+        ]
+      }
+    ],
+    "rule-empty-line-before": [
+      "always",
+      {
+        "except": "inside-block"
+      }
+    ],
+    "import-notation": null
+  }
+}

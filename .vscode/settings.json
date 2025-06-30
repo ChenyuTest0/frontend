@@ -1,0 +1,154 @@
+{
+  "cSpell.enabled": true,
+  "cSpell.words": [
+    "adoc",
+    "Animejs",
+    "anyenv",
+    "assetize",
+    "Avenir",
+    "Axios",
+    "budoux",
+    "builtins",
+    "chartjs",
+    "classname",
+    "codegen",
+    "corepack",
+    "CROS",
+    "datepicker",
+    "datetime",
+    "deepmerge",
+    "docname",
+    "esbenp",
+    "fullwidth",
+    "Halfwidth",
+    "highlightjs",
+    "highlightjsdir",
+    "imagesdir",
+    "imagesoutdir",
+    "intlify",
+    "jenesius",
+    "lcov",
+    "litepie",
+    "maybecode",
+    "mcoe",
+    "MVVM",
+    "nodenv",
+    "nodist",
+    "openapi",
+    "OWASP",
+    "Parens",
+    "Persistedstate",
+    "Pinia",
+    "pnpm",
+    "prgrm",
+    "productdevbook",
+    "regist",
+    "registerables",
+    "rollup",
+    "sectlinks",
+    "sectnumlevels",
+    "sectnums",
+    "semibold",
+    "sonarjs",
+    "stylelint",
+    "tailwindcss",
+    "toclevels",
+    "todos",
+    "tseslint",
+    "tsyringe",
+    "Ueshima",
+    "unplugin",
+    "unuserd",
+    "vite",
+    "vitejs",
+    "vitest",
+    "vuejs",
+    "vuepic",
+    "vueuse",
+    "Vuex",
+    "webcomponents"
+  ],
+  "cSpell.ignorePaths": [
+    "**/.git/objects/**",
+    "**/.git/subtree-cache/**",
+    "**/node_modules/*/**",
+    "**/plugins/*/**",
+    "**/platforms/*/**",
+    "**/custom_plugins/*/**",
+    "**/.vscode/**",
+    "*.json"
+  ],
+  "cSpell.ignoreRegExpList": ["[０-９Ａ-Ｚａ-ｚぁ-んァ-ヶ亜-熙纊-黑]+"],
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "files.exclude": {
+    "/.git": true,
+    "/.DS_Store": true,
+    "/node_modules": true,
+    "/node_modules/": true
+  },
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**/plugins/*/**": true,
+    "**/platforms/*/**": true,
+    "**/custom_plugins/*/**": true
+  },
+  "git.ignoreLimitWarning": true,
+  "importSorter.generalConfiguration.sortOnBeforeSave": false,
+  "search.exclude": {
+    "/node_modules": true
+  },
+  "stylelint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.stylelint": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+  "yaml.format.singleQuote": true,
+  "vite.devCommand": "npm start",
+  "vite.port": 3000,
+  "vite.browserType": "system",
+  "scss.validate": false,
+  "css.validate": false,
+  "stylelint.validate": ["html", "css", "scss", "vue"],
+  "todohighlight.keywords": [
+    {
+      "text": "NOTE:",
+      "color": "#ffffff",
+      "backgroundColor": "green",
+      "overviewRulerColor": "grey"
+    },
+    {
+      "text": "HACK:",
+      "color": "#ffffff",
+      "backgroundColor": "blue",
+      "overviewRulerColor": "grey"
+    }
+  ],
+  "todohighlight.keywordsPattern": "TODO:|FIXME:|HACK:|NOTE:",
+  "biome.enabled": false,
+  "github.copilot.advanced": {
+    "agentMode": true
+  },
+  "chat.agent.enabled": true,
+  "chat.mcp.enabled": false,
+  "chat.mcp.discovery.enabled": false
+}

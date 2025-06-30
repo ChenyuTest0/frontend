@@ -1,0 +1,34 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "oouo-diogo-perdigao.docthis",
+    "EditorConfig.EditorConfig",
+    "gencer.html-slim-scss-css-class-completion",
+    "saikou9901.evilinspector",
+    "mhutchie.git-graph",
+    "pomber.git-file-history",
+    "oderwat.indent-rainbow",
+    "ionutvmi.path-autocomplete",
+    "chrmarti.regex",
+    "shardulm94.trailing-spaces",
+    "wayou.vscode-todo-highlight",
+    "streetsidesoftware.code-spell-checker",
+    "dbaeumer.vscode-eslint",
+    "usernamehw.errorlens",
+    "nhoizey.gremlins",
+    "antfu.vite",
+    "bradlc.vscode-tailwindcss",
+    "stylelint.vscode-stylelint",
+    "mrmlnc.vscode-scss",
+    "asciidoctor.asciidoctor-vscode",
+    "Vue.volar",
+    "vitest.explorer",
+    "deinsoftware.vitest-snippets",
+    "wraith13.bracket-lens",
+    "figma.figma-vscode-extension"
+  ],
+  "unwantedRecommendations": [
+    "ZixuanChen.vitest-explorer",
+    "Vue.vscode-typescript-vue-plugin"
+  ]
+}

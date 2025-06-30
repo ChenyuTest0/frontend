@@ -1,0 +1,60 @@
+Button:
+  OK: OK
+  YES: YES
+  NO: NO
+  CLOSE: Close
+  CANCEL: Cancel
+  TOP: To Top
+  Edit: Edit
+  Delete: Delete
+  Save: Save
+
+LoginPage:
+  Title: Login Page
+  Logo: accenture
+  Welcome: Welcome
+  Email: Email
+  Password: Password
+  DoNotHaveAnAccount: Don't have an account?
+  RegisterHere: Register here
+  Login: Log In
+
+DashboardPage:
+  Title: Dashboard
+  SideMenu:
+    Menu1: Authentication
+    Menu2: Database
+    Menu3: Storage
+    Menu4: Hosting
+    Menu5: Functions
+  AuthenticationPage:
+    pageTitle: Authentication
+    tab1: Users
+    tab2: Sign-in method
+    tab3: Templates
+    tab4: Usage
+
+UserListPage:
+  ColNameId: Id
+  ColNameName: Name
+  ColNameEmail: Email
+  AddButton: Add User
+  ReloadBtn: Reload
+
+UserDetailModal:
+  ModalTitle: User Detail
+  Id: 'ID:'
+  Name: 'Name:'
+  Email: 'Email:'
+  Detail: 'Detail:'
+  Birthday: 'Birth Date:'
+  BirthdayPlaceholder: 'Select birth date'
+  ExpireDate: 'Valid Period:'
+  ExpireDatePlaceholder: 'Select start and end date'
+UserDeleteConfirmDialog:
+  Title: Delete
+  Message: Do you want to delete this user's data?
+
+UserEditModal:
+  EditTitle: Edit User Info
+  AddTitle: Add New User

@@ -1,0 +1,9 @@
+/* stylelint-disable scss/at-rule-no-unknown */
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #2979ff;
+  --color-secondary: #fb8c00;
+  --color-litepie-primary: colors.purple;
+  --color-litepie-secondary: colors.gray;
+}

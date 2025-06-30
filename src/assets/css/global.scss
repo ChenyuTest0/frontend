@@ -1,0 +1,17 @@
+@import './theme';
+
+:root {
+  --modal-transition: translateY(100%); // jenesius modal用のtransition
+}
+
+.modal-transition-enter-active,
+.modal-transition-leave-active,
+.modal-transition-enter-active .modal-item,
+.modal-transition-leave-active .modal-item {
+  transition: 0.2s ease-in;
+}
+
+.modal-transition-enter-from .modal-item,
+.modal-transition-leave-to .modal-item {
+  transform: var(--modal-transition);
+}

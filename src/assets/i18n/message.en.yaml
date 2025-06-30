@@ -1,0 +1,68 @@
+SystemMessages:
+  SystemErrorTitle: Error
+  SystemErrorApi: No response. Please wait a while and try again.
+  SystemErrorAuth: An error occurred during authentication. \nPlease log in again.
+  SystemErrorFatal: There seems to be an error with the app. Please restart the app or wait a while and try again.
+  SystemErrorMaintenance: Under maintenance.
+  SystemErrorNetwork: It seems that communication has been interrupted. Please check your connection and try again in a location with good reception.
+  SystemErrorValidate: An invalid request was sent.
+  VersionTitle: Update detected
+  Version: New features are now available. \nReload the page.
+
+ValidMessages:
+  Max: 'Please enter less than {max}.'
+  Min: 'Please enter more than {value}.'
+  LessThen: 'Please enter less than {max}.'
+  MoreThan: 'Please enter more than {min}.'
+  NotEqual: 'Please enter a number other than {notEqual}.'
+  Required: 'Please fill this item'
+  Email: 'Please enter a valid email address'
+  Telephone: 'Please enter a valid phone number.'
+  PostalCode: 'Please enter a valid postal code.'
+  URL: 'Please enter a valid URL.'
+  UUID: 'Please enter a valid UUID.'
+  OneOf: 'Please enter one of {values}.'
+  NotOneOf: 'Please enter something other than {values}.'
+  MinLength: 'Please enter at least {min} characters'
+  MaxLength: 'Please enter no more than {max} characters'
+  EqualLength: 'Please enter {length} characters. '
+  Pattern: 'Please enter in {regex} format. '
+  DefaultMessage: 'Please check your input. '
+  Trim: 'Please remove leading and trailing spaces. '
+  Date: 'Please enter a date. '
+  UpperCase: 'Please enter lowercase letters only. '
+  LowerCase: 'Please enter uppercase letters only. '
+  Positive: 'Please enter a positive number. '
+  Negative: 'Please enter a negative number. '
+  HalfWidthInteger: 'Please enter a half-width integer. '
+  HalfWidthAlphanumeric: 'Please enter half-width alphanumeric characters. '
+  HalfWidthAlphabet: 'Please enter half-width English characters. '
+  HalfWidthNumeral: 'Please enter half-width numeric characters. '
+  HalfWidthKana: 'Please enter half-width Kana characters. '
+  FullWidth: 'Please enter full-width characters. '
+  FullWidthAndSpace: 'Please enter full-width characters (including spaces).'
+  FullWidthAlphanumeric: 'Please enter full-width alphanumeric characters.'
+  FullWidthAlphabet: 'Please enter full-width English characters.'
+  FullWidthNumeral: 'Please enter full-width numeric characters.'
+  FullWidthKana: 'Please enter full-width Kana characters.'
+  FullWidthKanaAndSpace: 'Please enter full-width Kana characters (including spaces).'
+  AlphanumericAndSymbol: 'Please enter half-width alphanumeric characters and symbols.'
+  Default: 'Invalid input. '
+  Year: 'Please enter a valid year. '
+  Month: 'Please enter a valid month. '
+  Day: 'Please enter a valid date. '
+  Currency: 'Please enter a valid monetary value. '
+  Percentage: 'Please enter a valid percentage (up to two decimal points). '
+  DecimalNumberFormat: 'Please enter a number after the decimal point. '
+  IntegerNumber: 'Please enter a number with up to {length} digits before the decimal point. '
+  DecimalNumber: 'Please enter a number with up to {length} digits after the decimal point. '
+  Divisible: 'Please enter a number that can be divided by {divisor}. '
+  SafetyPassword: 'Please use uppercase and lowercase alphabet, numbers, and symbols, including at least one of each.'
+  ValidatorDateFormat: 'The date you entered is in an invalid format. '
+  FutureDate: 'Please enter a date after {baseDate}. '
+  PastDate: 'Please enter a date prior to {baseDate}. '
+  IgnoreEmoji: 'Emojis are not allowed. '
+  CustomerMsg1: 'Start date must be within the current year. '
+  CustomerMsg2: 'End date must be in the future. '
+  CustomerMsg3: 'Expiration date must be at least 7 days. '
+  CustomerMsg4: 'Date of birth cannot be in the future. '

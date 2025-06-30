@@ -1,0 +1,8 @@
+/* stylelint-disable scss/at-rule-no-unknown */
+// TailwindCSS v4で@applyを使う場合@referenceでtailwind.cssを読み込む必要がある
+@reference "../../../assets/css/tailwind.css";
+
+.title {
+  // TailwindのCSSを纏めて適応する場合は@applyを使う
+  @apply text-center text-3xl;
+}

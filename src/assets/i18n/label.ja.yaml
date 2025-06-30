@@ -1,0 +1,60 @@
+Button:
+  OK: OK
+  YES: YES
+  NO: NO
+  CLOSE: 閉じる
+  CANCEL: キャンセル
+  TOP: TOPへ
+  Edit: 編集
+  Delete: 削除
+  Save: 保存
+
+LoginPage:
+  Title: ログインページ
+  Logo: accenture
+  Welcome: ようこそ
+  Email: Email
+  Password: Password
+  DoNotHaveAnAccount: アカウントをお持ちではありませんか？
+  RegisterHere: ここから登録
+  Login: Log In
+
+DashboardPage:
+  Title: ダッシュボード
+  SideMenu:
+    Menu1: Authentication
+    Menu2: Database
+    Menu3: Storage
+    Menu4: Hosting
+    Menu5: Functions
+  AuthenticationPage:
+    pageTitle: Authentication
+    tab1: Users
+    tab2: Sign-in method
+    tab3: Templates
+    tab4: Usage
+
+UserListPage:
+  ColNameId: Id
+  ColNameName: Name
+  ColNameEmail: Email
+  AddButton: Add User
+  ReloadBtn: Reload
+
+UserDetailModal:
+  ModalTitle: User Detail
+  Id: 'ID:'
+  Name: 'Name:'
+  Email: 'Email:'
+  Detail: 'Detail:'
+  Birthday: 'Birth Date:'
+  BirthdayPlaceholder: 'Select birth date'
+  ExpireDate: 'Valid Period:'
+  ExpireDatePlaceholder: 'Select start and end date'
+UserDeleteConfirmDialog:
+  Title: 削除
+  Message: このユーザのデータを削除しますか？
+
+UserEditModal:
+  EditTitle: Edit User Info
+  AddTitle: Add New User

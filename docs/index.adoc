@@ -1,0 +1,1583 @@
+:source-highlighter: highlightjs
+:highlightjsdir: highlight
+:highlightjs-languages: bash, typescript, javascript, html, css, scss, markdown
+:lang: ja
+:doctype: book
+:toc: left
+:toclevels: 4
+:toc-title: 目次
+:sectnums:
+:sectnumlevels: 4
+:sectlinks:
+:icons: font
+:y: icon:check[role="green"]
+:n: icon:times[role="red"]
+:m: icon:minus[role="blue"]
+:imagesdir: images
+:imagesoutdir: images
+:icons: font
+:example-caption: 例
+:table-caption: 表
+:figure-caption: 図
+:docname: = ACTS Vue.js 開発ガイド
+:chapter-label:
+:experimental:
+
+= ACTS Vue.js 開発ガイド
+
+== はじめに
+
+当ガイドはACTS Vue.jsにおける開発ガイドラインを示すものである。
+
+== 開発の初期設定、ビルド手順、VSCodeでのデバッグ方法など
+
+gitリポジトリの README.md を参照
+
+== ディレクトリ構成
+----
+Project Root
+├─.vscode <1>
+├─docs <2>
+├─e2e <3>
+├─environments <4>
+├─mock_server <5>
+├─public <6>
+├─test <7>
+└─src <8>
+    ├─assets  <9>
+    │  ├─css  <10>
+    │  └─i18n  <11>
+    ├─business  <12>
+    │  ├─components  <13>
+    │  ├─entities  <14>
+    │  ├─pages  <15>
+    │  ├─repositories  <16>
+    │  ├─stores  <17>
+    │  ├─utils  <18>
+    │  routes.ts  <19>
+    ├─business-a
+    │  ├─（business同様、略）
+    ├─core  <20>
+    │  ├─...
+    ├─shared  <21>
+    │  ├─@types  <22>
+    │  ├─components  <23>
+    │  ├─directives  <24>
+    │  ├─error-handler  <25>
+    │  ├─global-filters  <26>
+    │  ├─pages  <27>
+    │  ├─utils  <28>
+    │  └─validators  <29>
+    App.vue  <30>
+    env.d.ts  <31>
+    main.ts  <32>
+    polyfill.ts  <33>
+    routes.ts  <34>
+----
+. VSCode向けのプロジェクト設定ファイル。
+. 当ドキュメントを格納したフォルダ。
+. End to Endテスト用スクリプト。
+. ビルド設定ごとの環境設定ファイル。
+. サーバAPIの簡易モック。
+. 静的資源の配置先。faviconなど、殆どアップデートされない資源を配置する。
+. UTにおけるMockしておきたい処理を配置する。
+. ソースコード
+. ビルド対象の静的資源。SCSSファイルや、YAMLファイル、変更される可能性のある画像ファイルはここに配置する。
+. グローバルに適応するCSS、SCSSファイルを配置する。
+. 多言語化用のYAMLファイルを配置する。
+. ビジネスロジックを配置する。これはドメインごとに切る。
+. ドメイン内での共通コンポーネントを配置する。
+. 必要に応じて、APIに対するInterface定義が多くなる場合はここに切り出して配置する。
+. PageComponentを配置する。基本的にPageは、.vueファイル、htmlファイル、.scssファイルの3つでのセットとする。
+. APIに対する通信処理を行うRepositoryClassを配置する。
+. PiniaのStoreを配置する。
+. 必要に応じて、ドメイン内での共通UtilClassを配置する。
+. ドメイン内でのルーティング定義を行う。
+. アーキが提供するコア部分の処理が配置される。このディレクトリ以下は `@core/*` でアクセスすることができる。
+. ビジネスロジックでドメインを跨いで共通で利用する処理を配置する。このディレクトリ以下は `@shared/*` でアクセスすることができる。
+. `d.ts` ファイルを配置する。
+. 共通コンポーネントを配置する。
+. 共通directiveを配置する。
+. エラーハンドリング処理を配置する。
+. 共通フィルタを配置する。
+. 404など、共通的なページを配置する。
+. 共通Utilを配置する。
+. カスタムValidatorを配置する。
+. アプリのルートとなる画面。
+. loaderから呼び出されるファイルに対するTypescriptの型定義を設定する。標準はvue,yml,yamlファイル。
+. Vueアプリケーションの初期処理を定義する。
+. 必要であればJavascript向けのpolyfillを宣言する。
+. アプリケーション全体のルーティング設定を定義する。
+
+== アーキテクチャ概要
+
+Piniaフレームワークを利用した、Fluxパターンを採用する。 +
+Vue.jsではVuexが標準的に利用されているが、現時点でVue.js2版を無理矢理Vue.js3へ適用したアーキテクチャであり、次のメジャーバージョンアップで大規模な変更が発生すると見込まれている。 +
+PiniaはそのRFCを一部取り込んだ、よりシンプルなState管理を提供する。
+
+image::architecture.png[]
+
+=== View (Page/Component)
+
+*Page* は画面全体の実装を、 *Component* は画面のパーツの実装を行う。 +
+基本的にhtml/css専用のフロントエンドコーダーがプロジェクトに配属されている場合、 `.vue` (画面処理), `.html` (HTMLテンプレート), `.scss` (スタイルシート) の3ファイルのセットで実装する。 +
+ただし、テンプレートもしくは内部処理が10行以内で収まるようなシンプルなComponentについては `.vue` ファイルのみで実装してもよい。 +
+
+**html/css専用のフロントエンドコーダーが居ない、もしくは `.vue` をそのままテンプレートとして扱う事により、コード補完などの動作が効くことを理解している場合は、`.vue` をそのままテンプレートとして利用する。その場合、`.vue`ファイルの肥大化を避けるため、必ずCustom Compositionを併用する。**
+
+コンポーネント専用のCSSを記述する場合、 https://vuejs.org/api/sfc-css-features.html[scoped] などを利用し、他CSSへの汚染を行わないようにする。
+
+==== Composition API
+
+画面のロジックには、Vue.js3より推奨となった https://v3.ja.vuejs.org/guide/composition-api-introduction.html[Composition API] を利用し実装を行う。 +
+Compositionは構成を意味し、Componentの中の依存性のある大きなロジックを細かく切り出す事で、ソースコードのメンテナンス性を高める。 +
+複雑性の高い処理は、 https://www.thisdot.co/blog/custom-composable-methods-with-vue-3[Custom Composition] として切り出していく。 +
+スケルトン上では、 `LoginPage` のForm周りの処理(`useLoginForm`)や、Repository Classを利用している箇所におけるエラーとロード処理ハンドリング(`useApiHandlerResult`)などが挙げられる。
+
+CAUTION: **画面のビジネスロジックは極力 `.vue` ファイルに書かず、Custom Compositionに記載する。**
+
+=== Store (Action/State/Getter)
+
+今回アプリケーション全体のState（状態）の管理はPiniaを利用する。
+https://pinia.esm.dev/[Pinia公式ドキュメント]。
+
+CAUTION: **Storeに格納されているStateは、ブラウザのタブが生き続けている間、メモリに溜まり続けることを認識すること。 +
+<<Stateのライフサイクル管理について>> を参照。**
+
+==== Action
+
+画面から呼び出される処理をここに記述する。 `State` の更新もここで実施する。 +
+`Repository` を呼び出し、画面アクションからのAPI実行についてもここで実施する。
+
+CAUTION: **画面に値を返すロジックは記載しないこと。**
+
+==== Getter
+
+画面に返却するメソッドを定義する。AkitaにおけるQuery。 +
+値は https://vuejs.org/guide/essentials/computed.html[computed] となる。
+
+CAUTION: **画面に値を返すロジックを記載すること。**
+
+==== Persist State
+
+Stateの永続化。 https://github.com/prazdevs/pinia-plugin-persistedstate[pinia-plugin-persistedstateプラグイン] を利用する事で実装する。 +
+Storeの定義に以下のような設定を埋め込む。Stateの保存先はlocalStorage、SessionStorage、自前実装したカスタムストレージを利用できる。
+
+[source, typescript]
+----
+export const useTestStore = defineStore('test', {
+  state: () => {
+    return {
+      someState: 'hello pinia',
+    }
+  },
+  persist: {
+    storage: sessionStorage,
+  },
+})
+----
+
+==== 時限的な Persist State （フロントエンドキャッシュ）
+
+このアーキでは、明示的なフロントエンドキャッシュを実装するための`pinia-plugin-persistedstate`向けカスタムストレージを提供する。 +
+情報はlocalStorageにキャッシュされるため、以下の制限を受ける。
+
+- 最大容量5MB。これ以上の情報を記録するとエラーが発生する。
+- Safari/Mobile Safari上では、この情報に7日間アクセスが無いと自動的に削除される。
+
+[source, typescript]
+----
+// Helperのインスタンス
+const testStoreUtil = new PiniaHelperUtil();
+
+export const useTestStore = defineStore('test', {
+  state: () => {
+    return {
+      someState: 'hello pinia',
+    }
+  },
+  persist: {
+    // 秒でキャッシュの期限を指定する。これは30分間。
+    storage: authStoreUtil.limitedLocalStorage(30 * 60),
+    // pinia-plugin-persistedstateのbeforeRestoreライフサイクルを利用し、HelperにStoreを受け渡す
+    beforeRestore: (context: PiniaPluginContext) => {
+      testStoreUtil.setLimitedTargetStore(context.store);
+    }
+  },
+})
+----
+
+LocalStorageの制限事項についての参考資料
+https://html.spec.whatwg.org/multipage/
+https://webkit.org/blog/9521/intelligent-tracking-prevention-2-3/
+
+==== Stateのライフサイクル管理について
+
+Piniaで保存されるStateは、Global Stateとなる。 +
+これはメモリ上で持ち回る事になるため、あまりにも大きいStateについては、保持し続けるだけでアプリ全体のパフォーマンスに影響を及ぼす。 +
+永続化する必要のないStateについては、画面の `unmounted` のタイミングなどで https://pinia.esm.dev/core-concepts/state.html#resetting-the-state[$reset()] を実施する。
+
+==== AkitaのようなIndexを使ったStateの更新
+
+自前で組む必要がある。スケルトンの `useMethodStore` を参考とすること。
+
+==== StateのImmutable化
+
+Akitaと違い、PiniaはStateをImmutableとして扱わない。 +
+必要に応じてTypescriptの https://github.com/posva/pinia/issues/58[DeepReadonly機構を利用] し、Immutable化する。
+
+=== Repository
+
+APIに対して通信を行う処理を記述する。このClassを呼び出す場合は、<<DI Container>>経由でinjectionして利用する。 +
+これはUnit Testingを記述する際に、Mock Classと差し替えるため。
+
+=== DI Container
+
+https://github.com/microsoft/tsyringe[tsyringe] を利用している。 +
+Instanceを作る必要のあるClassは必ずこれを利用し、 `@injectable()` で注入可能にしておくこと。
+
+AngularのDIと違い標準ではSingletonとならないため、Singletonにしたければ `@singleton()` を宣言すること。
+
+[source, typescript]
+----
+import { injectable, container } from 'tsyringe';
+@injectable()
+export class LoggerService {
+  ...
+}
+
+const logger = container.resolve(LoggerService);
+----
+
+==== VueのDI(Provide/inject)について
+
+Vue.jsでも https://v3.ja.vuejs.org/guide/component-provide-inject.html[同様の機能] を保持しているが、これはvueファイル上のpropsに焦点を当てたものであるため併用可能。 +
+ただし、このアーキテクチャではPiniaというGlobal Stateでの管理が基本であるため、使い所は少ないと考える。
+
+== フロントサイドバリデーション
+
+
+=== バリデーションの基礎
+
+Yup+vee-validateを利用する。
+vee-validateは、フォーム自体の管理を行い、Yupは値のバリデーションのみを提供しています。
+
+* vee-validate公式ドキュメント +
+https://vee-validate.logaretm.com/v4/
+
+* Yup標準バリデーション +
+https://www.npmjs.com/package/yup?activeTab=readme
+
+* カスタムエラーメッセージ +
+** `.src/assets/i18n/message.{locale}.yaml` にメッセージ文言を定義する。
+** `.src/shared/utils/i18n.util.ts` でYup標準バリデーションのエラーメッセージをフックし変更できる。
+** エラーメッセージをプロジェクト全体通用にする場合は、`message.{locale}.yaml` から変更する。個別箇所でメッセージを変更したい場合は、Validatorにメッセージの引数を渡すことができる。
+
+* カスタムバリデーション +
+バリデーションを自作で追加できる。実装方法は `.src/shared/validators/number-string.validator.ts` を参考してください。
+
+=== アーキで用意しているカスタムバリデーションの種類
+
+* Vue.jsアセットカスタム数字バリデーション
+** yup.number(errorMsg?: string).year() +
+*** 対象のインプットが1900～2099であるかのバリデーション
+*** Regex: `/^(19[0-9]{2}|20[0-9]{2})%/`
+** yup.number().month(errorMsg?: string)
+*** 対象のインプットが1～12であるかのバリデーション
+*** Regex: `/^((0?[1-9]|1[0-2])%/`
+** yup.number().day(errorMsg?: string)
+*** 対象のインプットが1～31であるかのバリデーション
+*** Regex: `/^(0?[1-9]|[12][0-9]|3[01])%/`
+** yup.number().currency(errorMsg?: string)
+*** 対象のインプットが半角数字の金額であるかのバリデーション
+*** Regex: `/^([1-9][0-9]*|0)?$/`
+** yup.number().percentage(errorMsg?: string)
+*** 対象のインプットが半角数字の％数字であるかのバリデーション
+*** Regex: `/(^100(\.0{1,2})?$)|(^([1-9]([0-9])?|0)(\.[0-9]{1,2})?$)/`
+** yup.number().customDigitNumber(integerLength: number,
+      decimalLength: number,
+      errorMsgInteger?: string,
+      errorMsgDecimal?: string)
+*** 小数点以下の桁数（第二引数）と小数点以上の桁数（第一引数）を指定し、対象のインプットが当てはまるかどうかのバリデーション
+*** 小数点以上に符号（+,-）が含まれる場合、それも桁数としてカウントされる。
+*** Regex: `/^[+-]?(0|([1-9]\d*))(\.\d+)?$/g`
+** yup.number().divisible(divisor: number, errorMsg?: string)
+*** 対象のインプットが引数で指定された数字で割り切れるかどうかのバリデーション
+*** Regex: `/(^100(\.0{1,2})?$)|(^([1-9]([0-9])?|0)(\.[0-9]{1,2})?$)/`
+
+* Vue.jsアセットカスタム文字バリデーション
+** yup.string().fullWidth(errorMsg?: string)
+*** 対象のインプットが全角（全角スペースを含めない）であるかのバリデーション
+*** ハイフンについて、ASCIIのハイフン（\u002D）、半角カナの長音（\uFF70）は許容しない。
+*** Regex: `/^[^ -~｡-ﾟ]*$/`
+** yup.string().fullWidthAndSpace(errorMsg?: string)
+*** 対象のインプットが全角（全角スペース含む）であるかのバリデーション
+*** ハイフンについて、ASCIIのハイフン（\u002D）、半角カナの長音（\uFF70）は許容しない。
+*** Regex: `/^[^ -~｡-ﾟ　]*$/`
+** yup.string().fullWidthAlphanumeric(errorMsg?: string)
+*** 対象のインプットが全角英数であるかのバリデーション
+*** Regex: `/^[０-９ａ-ｚＡ-Ｚ]*$/`
+** yup.string().fullWidthKana(errorMsg?: string)
+*** 対象のインプットが全角カナであるかのバリデーション
+*** Unicode\u30A0から\u30FFまでが許容範囲のため、゠、・を許容する。
+*** Regex: `/^[゠-ヿ]*$/`
+** yup.string().fullWidthKanaAndSpace(errorMsg?: string)
+*** 対象のインプットが全角カナ（全角スペース含む）であるかのバリデーション
+*** Unicode\u30A0から\u30FFまでが許容範囲のため、゠、・を許容する。
+*** Regex: `/^[゠-ヿ　]*$/`
+** yup.string().fullWidthAlphabet(errorMsg?: string)
+*** 対象のインプットが全角英字であるかのバリデーション
+*** Regex: `/^[Ａ-Ｚ]*$/`
+** yup.string().fullWidthNumeral(errorMsg?: string)
+*** 対象のインプットが全角数字であるかのバリデーション
+*** Regex: `/^[０-９]*$/`
+** yup.string().halfWidthAlphanumeric(errorMsg?: string)
+*** 対象のインプットが半角英数であるかのバリデーション
+*** Regex: `/^[a-zA-Z0-9]*$/`
+** yup.string().halfWidthAlphabet(errorMsg?: string)
+*** 対象のインプットが半角英字であるかのバリデーション
+*** Regex: `/^[a-zA-Z]+$/`
+** yup.string().halfWidthKana(errorMsg?: string)
+*** 対象のインプットが半角カナであるかのバリデーション
+*** Regex: `/^[ｦ-ﾟ]+$/`
+** yup.string().alphanumericAndSymbol(errorMsg?: string)
+*** 対象のインプットが半角英数字と記号（空白文字は入力不可）であるかのバリデーション
+*** Regex: `/^[0-9a-zA-Z!-/:-@¥[-`{-~]*$/`
+** yup.string().safetyPassword(errorMsg?: string)
+*** 対象のインプットにアルファベットと数字と記号が１文字以上含まれているかのバリデーション
+*** Regex: `/^(?=.*?[a-z])(?=.*?\d)(?=.*?[!-\/:-@[-`{-~])[!-~]*$/i`
+** yup.string().telephone(errorMsg?: string) +
+*** 対象のインプットが電話番号(ハイフン付き)であるかのバリデーション
+*** Regex: `/^([0-9]{10,11}|[0-9]{2,4}-[0-9]{2,4}-[0-9]{4})$/`
+** yup.string().postalCode(errorMsg?: string)
+*** 対象のインプットが郵便番号(ハイフン付き)であるかのバリデーション
+*** Regex: `/^([0-9]{3}-[0-9]{4}|[0-9]{7})$/`
+** yup.string().validatorDateFormat(separator?: string, errorMsg?: string)
+*** 対象のインプットが日付であるかのバリデーション
+*** パラメータに何もセットしない場合yyyy-mm-ddのバリデーションになる
+*** Regex: `^(19[0-9]{2}|20[0-9]{2})(0?[1-9]|1[0-2])(0?[1-9]|[12][0-9]|3[01])$`
+*** パラメータに"/"などの区切り文字をセットした場合、日付が区切り文字で区切られる（yyyy/mm/dd)
+*** Regex: `^(19[0-9]{2}|20[0-9]{2})-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$`
+** yup.string().pastDate()
+*** 対象のインプットが指定された日付（stringでYYYY-MM-DDのフォーマット）より過去かどうかのバリデーション（同日付は含まない）
+*** 第一引数で比較対象の日付を指定する。指定がない場合、システム日付と比較する。
+*** 第二引数で日付のセパレータを指定する。指定がない場合はYYYY-MM-DDフォーマットを採用する。(日付のフォーマットチェックはyup.string().validatorDateFormat()と同じ）
+** yup.string().futureDate()
+*** yup.string().pastDateの未来版
+** yup.string().compareDates()
+*** yup.string().pastDate()とyup.string().futureDate()で使用されてるベースのバリデーション。対象のインプットが指定された日付（stringでYYYY-MM-DDのフォーマット）より過去/未来かどうかのバリデーション（同日付は含まない）。一般的にはpastDate()とfutureDate()を使用してください。
+*** 第一引数で比較の種別、過去(true)か未来(false)を指定する。
+*** 第二引数で比較対象の日付を指定する。指定がない場合、システム日付と比較する。
+*** 第三引数で日付のセパレータを指定する。指定がない場合はYYYY-MM-DDフォーマットを採用する。(日付のフォーマットチェックはyup.string().validatorDateFormat()と同じ）
+** yup.string().ignoreEmoji()
+*** 絵文字のバリデーション
+** yup.string().containsEmojiMax()
+*** 絵文字、機種依存文字を含む最大文字数のバリデーション
+** yup.string().containsEmojiMin()
+*** 絵文字、機種依存文字を含む最小文字数のバリデーション
+
+=== 実装方法
+
+* 注意事項
+
+** 型について： +
+`yup.number()` のバリデーションを使用する場合、入力がstringになるため、インプットを削除すると、`required()` のエラーにならず、`typeError` になるため、`typeError('message')` を使用することを推奨する。他には、未入力（空文字列）の場合`undefined` などへ変換する方法もある。
+
+[source, typescript]
+----
+  Yup.number()
+    .transform(value => (isNaN(value) ? undefined : value)) // <---
+    .required()
+  })
+----
+
+* 実装例
+
+[source, typescript]
+.src/business/pages/dashboard/authentication/user/user-edit/user-edit.form.composition.ts
+----
+import { differenceInCalendarDays } from 'date-fns';
+import format from 'date-fns/format';
+import { useField, useForm } from 'vee-validate';
+import { UserDetailResponse } from '@/business/repositories/user.repository';
+import { useUserStore } from '@/business/stores/user.store';
+import { $t } from '@shared/utils/i18n.util';
+
+// アセットカスタマイズバリデーションを利用する時、こちらのファイルをimport
+import yup from '@/shared/validators/number-string.validator';
+
+// Yup標準バリデーションのみ利用する時はこちらでimport
+// import * as Yup from 'yup';
+
+// form各項目の型を定義
+interface ValidPeriod {
+  startDate: string | undefined;
+  endDate: string | undefined;
+}
+interface UserRegisterForm {
+  email: string | undefined;
+  validPeriod: ValidPeriod | undefined;
+}
+
+// html側で使うFormを定義
+export const useUserEditForm = (
+  user: UserDetailResponse | undefined,
+  popModal: () => void
+): object => {
+  const userStore = useUserStore();
+
+  // formのバリデーションスキーマを定義
+  const userEditFormSchema = yup.object({
+    global: yup.string(),
+    // 最初にyup.string()でバリデーションの型を設定、後ろに必要なバリデーションを追加する
+    email: yup.string().email().max(50).required(),
+    // バリデーション項目がオブジェクトでネストされている場合、子項目で詳細のバリデーションを設定する
+    validPeriod: yup.object().shape({
+      startDate: yup
+        .string()
+        .required()
+        // アセットカスタマイズバリデーションを利用する
+        .pastDate(undefined, undefined, $t('ValidMessages.CustomerMsg4')),
+      endDate: yup
+        .string()
+        .required()
+        // 他のFieldの入力内容と比較などのバリデーションを設定したい時、.test()で詳細なバリデーション内容を実装する
+        .test('futureDate', function (value) {
+          if (this.parent.startDate && value) {
+            const endDate = new Date(value);
+            const startDate = new Date(this.parent.startDate);
+            if (differenceInCalendarDays(endDate, startDate) < 7) {
+              return this.createError({
+                message: $t('ValidMessages.CustomerMsg3')
+              });
+            }
+          }
+          return value !== undefined;
+        })
+    })
+  });
+
+  // form各項目の初期値を定義する
+  const dateFormatter = 'yyyy-MM-dd';
+  const formInitialValue = user
+    ? {
+        email: user.email,
+        validPeriod: {
+          startDate: user.validStartDate
+            ? format(user.validStartDate, dateFormatter)
+            : '',
+          endDate: user.validEndDate
+            ? format(user.validEndDate, dateFormatter)
+            : ''
+        }
+      }
+    : {
+        email: undefined,
+        validPeriod: {
+          startDate: '',
+          endDate: ''
+        }
+      };
+
+  // 型付きでformを（データとエラー）を定義し、初期値を設定する
+  const { meta: formMeta, setFieldError } = useForm<UserRegisterForm>({
+    validationSchema: userEditFormSchema,
+    initialValues: formInitialValue
+  });
+
+  // Field（form項目）とそのエラーを定義する。子項目の場合は{親項目.子項目}
+  const { value: emailField, errorMessage: emailError } =
+    useField<string>('email');
+  const { value: validPeriodField, errorMessage: validPeriodError } =
+    useField<ValidPeriod>('validPeriod');
+  const { value: startDateField, errorMessage: startDateError } =
+    useField<string>('validPeriod.startDate');
+  const { value: endDateField, errorMessage: endDateError } = useField<string>(
+    'validPeriod.endDate'
+  );
+
+  // formをsubmit時のイベント
+  const onSummit = async () => {
+    if (!formMeta.value.valid) {
+      return;
+    }
+
+    await handleApi();
+    popModal();
+  };
+  return {
+    emailField,
+    emailError,
+    validPeriodField,
+    validPeriodError,
+    startDateField,
+    startDateError,
+    endDateField,
+    endDateError,
+    formMeta,
+    onSummit
+  };
+----
+
+[source, html]
+.src/business/pages/dashboard/authentication/user/user-edit/user-edit.html
+----
+<form @submit.prevent="onSummit">
+  <div>
+    <div>
+      <label for="email"
+        >{{ $t('UserDetailModal.Email') }}</label
+      >
+      <input
+        id="email"
+        type="email"
+        v-model="emailField（Formで定義したフィールド名）"
+      />
+      <span class="text-red-500">{{ emailError（Formで定義したエラー名） }}</span>
+    </div>
+    <div>
+      <label for="validPeriod"
+        >{{ $t('UserDetailModal.ExpireDate') }}</label
+      >
+      <litepie-datepicker
+        id="validPeriod"
+        v-model="validPeriodField（Formで定義したフィールド名）"
+      ></litepie-datepicker>
+      <span class="text-red-500">{{ endDateError（Formで定義したエラー名） }}</span>
+    </div>
+  </div>
+  <!--footer-->
+  <div>
+    <button
+      :disabled="!formMeta.valid（バリデーションエラーが発生する時にSubmitボタンを非活性にする） || loading（APIへの通信Stateを画面に返却している場合はロード状況でSubmitButtonを非活性化する）"
+      type="submit"
+    >
+      {{ $t('Button.Save') }}
+    </button>
+  </div>
+</form>
+----
+
+[suppress='SectionLength']
+== エラーハンドリング
+
+エラーは3段階のレイヤーで分離される。
+
+. API通信のStatus CodeでThrowするエラーオブジェクトを判別。
+. View層でのハンドリング。リトライや特殊なダイアログ表示、画面遷移などを行う。
+. グローバルエラーハンドラ。キャッチできなかった例外をここでハンドリングして、画面上にダイアログを出す。
+
+基本的にこのアーキテクチャは通信エラーにフィーチャーしているが、勿論Store層でも自前のエラーをハンドリングしてThrowできる。 +
+`複数の通信を同時に実行する` などの場合は、Storeレイヤーでエラーを束ねるなどのハンドリングを行う。
+
+NOTE: Akitaと違いStateでエラーを保持しないのは、コードの可読性が悪くなるため。今回のアーキではシンプルなThrowに落とし込んだ。
+
+=== 通信エラーハンドリング
+
+以下の想定でエラーオブジェクトをThrowするように作られている。標準実装はACTS2基準である。 +
+APIへの通信は https://axios-http.com/[Axios] を使い行う。 +
+エラーのThrowはAxiosの https://axios-http.com/docs/interceptors[Interceptor] 機能を利用している。
+
+[cols="1,1,2", options="header"]
+.Http Status Code対応表
+|===
+|応答種別
+|Status Code
+|備考
+
+|正常終了
+|200 - OK
+|
+
+|業務エラー
+|400 - Bad Request
+|バリデーションエラーなど。業務ロジックでエラーとするもの。
+
+|システムエラー
+|500 - Internal Server Error
+|DB接続ができなかった場合など。システム起因で発生するエラー。
+
+|サービス利用不可エラー
+|503 - Service Unavailable
+|メンテナンス中などのステータスを示す
+
+|認証エラー
+|401 - Unauthorized
+|認証済みではければアクセスできないAPIに未認証の状態でアクセスした場合。ログイン時のパスワード間違えは``400``とする。
+
+|===
+
+==== AxiosFactory Class
+
+AxiosのInstanceを取得する際は、 `@core/http/axios-factory.ts` を利用する。 +
+ここからInstanceを取得すると、標準のInterceptorと、環境設定ファイル上のVITE_API_ENDPOINTがエンドポイントとなったInstanceが取得できる。
+
+[source, typescript]
+----
+public getUserList(): Promise<{ data: UserDetailResponse[] }> {
+  const repository = AxiosFactory.get();
+  return repository.get('/users');
+}
+----
+
+なお、EndpointやInterceptorを差し替えたい場合は、 `AxiosFactory.createInstance()` 、 +
+Endpointだけを差し替えたい場合は `AxiosFactory.get()` にパラメータを渡すことで実現できる。
+
+=== Viewレイヤーでのエラーハンドリング
+
+VueのCompositionAPI機構を利用してErrorHandlingを行う。 +
+`@core/compositions/api-error-handler.composition.ts` に汎用的な実装を用意している。
+
+[source, typescript]
+----
+// - 一般的なAPI通信の例
+// loadUserList()のAPI通信を行い、ローディング中の状況を `loading` に、エラー内容を `error` に入れる。
+// 400エラーかつGlobal項目でエラーが発生した場合、ダイアログでエラーを表示する。
+// 通信エラーが発生した場合、ダイアログでエラーを表示する。
+const { handleApi, error, loading } = useShowDialogApiHandler<void>(
+  () => user.loadUserList(),
+);
+// API実行
+handleApi();
+
+// - ログインFormの例
+// login()のAPI通信を行い、ローディング中の状況を `loading` に入れる。
+// 400エラーが発生した場合、 Field項目については `vee-validate` のsetFieldErrorを利用し、Fieldのエラーとして設定する。
+// 400エラーかつGlobal項目でエラーが発生した場合、ダイアログでエラーを表示する。
+// 通信エラーが発生した場合に再送したい場合は、retryCountを設定する。
+// retryCount以上に通信エラーが発生した場合、ダイアログでエラーを表示する。
+const { handleApi, loading } = useApiHandler<void>(
+  () => auth.login(mailAddressField.value, passwordField.value),
+  setFieldError,
+  true,
+  3
+);
+// API実行
+handleApi();
+
+// Loading状況はhtmlテンプレート側に渡し、ローディング中表示のフラグに利用する
+<LoadingMask :loading="loading" />
+
+// エラー状況はhtmlテンプレート側に渡し、再実行ボタンなどを表示させる
+<div v-if="error">
+  <button type="submit">
+    再実行
+  </button>
+</div>
+----
+
+=== グローバルエラーハンドラ
+
+`/src/shared/error-handler/` に実装されている。 +
+CatchできなかったVue上の例外、Javascript側の標準Error、CatchできなかったPromiseのErrorにフックし、エラーダイアログを表示する。
+
+=== エラーオブジェクトの種類
+
+通信エラーはそれぞれ、ApiValidationError（400）、AuthenticationError（401）、ApiSystemError（500）、MaintenanceError（503）、NetworkError（通信例外、又はタイムアウト）をThrowする。
+
+=== サーバーサイドバリデーションエラー
+
+==== エラーレスポンスのフォーマット
+
+標準ではACTS2基準に対応している。
+カスタムされたエラーレスポンスに対応する場合は
+[source, json]
+----
+{
+  error: "VALIDATION_FAILURE",
+  fields: [
+    {
+      field: "userId",
+      message: "必須項目です",
+    },
+    ...
+  ],
+}
+----
+
+== 環境ごとのビルド設定
+
+`environments` フォルダに配置される。詳細は https://vitejs.dev/guide/env-and-mode.html[公式ドキュメント] を参照。 +
+環境ごとのビルド方法はreadme.mdを参照。設定には必ず `VITE_` をPrefixに付ける必要がある。
+
+=== アーキで予約された環境設定
+
+|===
+|VITE_API_ENDPOINT| AxiosFactoryから生成されるInstanceの標準通信Endpoint。
+|VITE_NETWORK_TIMEOUT| AxiosFactoryから生成されるInstanceの標準タイムアウト時間（ミリ秒）
+|VITE_CONSOLE_LOG_LEVEL| ConsoleLoggerに出力するログレベル。
+|===
+
+=== 環境設定情報取得方法
+
+以下のように `import.meta.env` から取得できる。
+
+[source, typescript]
+----
+const apiEndpoint = import.meta.env.VITE_API_ENDPOINT as string;
+----
+
+== Logger
+
+このアプリでは、LoggerServiceを使用してログの記録を行っている。
+`LoggerService.addLogger()` で複数のLoggerを登録することにより、ログを出力する動作をカスタムすることができる。
+
+=== 既存のLogger
+|===
+|ServerLogger| 指定のサーバにログを送信するサンプル。
+|ConsoleLogger| コンソールにログを出力する。ログレベルが `TRACE` の場合は青、 `DEBUG` の場合は青緑、 `INFO` と `LOG` の場合は灰色、 `WARN` `ERROR` `SYSTEM_ERROR` の場合は赤で出力される。
+|===
+
+=== Log Level
+
+- 対応しているログレベルは下記。 +
+`TRACE`
+, `DEBUG`
+, `INFO`
+, `LOG`
+, `EVENT`
+, `TAP_EVENT`
+, `WARN`
+, `ERROR`
+, `SYSTEM_ERROR`
+, `OFF`
+- ロガー登録時にログレベルを選択することで、出力するログのレベルを選択することができる。 ログレベルは `|` 区切りで複数登録可能。 `OFF` を選択するとログは出力されない。
+-  `ERROR` と `SYSTEM_ERROR` はStackTraceと共に出力される。
+- アプリ内でハンドリングされなかったエラーは<<グローバルエラーハンドラ>>内で `SYSTEM_ERROR` として出力される。
+
+=== カスタムLogger作成
+
+. AbstractLoggerを継承したLogger用のクラスを作成する。
+. コンストラクタでは、親クラスに必ずログレベルを渡すようにする。コンストラクタ内で指定するログレベルによって出力されるログの種類が変化する。（下記の例参照）
+. ログ書き出し方を `write` メソッドへ実装する。例えば、ConsoleLoggerの場合、WARNレベルのログは赤い文字でConsoleへ出力するなどの処理を入れる。
+
+例：
+[source, typescript]
+----
+  const customConfig = {
+    level: 'WARN|ERROR' #環境によって変更が必要な場合はenv.[env]に記載する
+  };
+  const service = container.resolve(LoggerService);
+  service.addLogger(new CustomLogger(customConfig));
+  return service;
+----
+
+== Routing
+
+https://next.router.vuejs.org/[vue-router]を利用し実現している。実装方法についてはドキュメントを参照。
+
+アプリ全体で共通的なRouting設定は `src` 配下の `routes.ts` 、ドメインに特化したものは、各ドメイン配下の `routes.ts` に記述する。
+
+=== Hash Routing
+
+標準では、 *\#* を使わないRoutingを実装している。 （`EX) https://example.com/login`） これは <<各種ホストへアップロードする際の設定について>> の手順通りアプリケーションサーバーやインフラの必要となる +
+もし、設定が不可能な場合は、 *#* を使ったRoutingが可能 (`EX) https://example.com/index.html#login`)。 +
+詳細は https://next.router.vuejs.org/guide/migration/#new-history-option-to-replace-mode[公式ドキュメント] を参照。
+
+=== 各種ホストへアップロードする際の設定について
+
+一般的なNginx, Apacheなどの設定は、 https://next.router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations[公式ドキュメント] を参照。
+
+S3 + Cloudfrontへのアップロードは https://qiita.com/hkato/items/e0e8286a10e5e6abb08e[このドキュメント] を参照。
+
+=== ブラウザのバックボタン制御
+
+https://router.vuejs.org/guide/advanced/navigation-guards.html#navigation-guards[navigation-guards] の機構と、 https://developer.mozilla.org/ja/docs/Web/API/History_API[HistoryAPI] を利用する。 +
+このスケルトンでは、ログイン画面からダッシュボードに遷移した際にバックボタンを無効化する処理が組み込まれている。
+
+[source, typescript]
+----
+export const businessSharedRouterGuard = async (
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized
+) => {
+  // ログイン画面からダッシュボードへの遷移を感知した場合、ブラウザバックを抑制する
+  if (from.fullPath === '/' && to.fullPath.includes('/dashboard/')) {
+    // ブラウザバック抑制
+    history.pushState(null, '', document.URL);
+  }
+};
+----
+
+=== F5押下時のStateのRestore
+
+SPAは全ての情報をブラウザの揮発メモリ領域に記録するため、F5などリロードが発生するとStateが揮発し、APIから情報を取り直さねばならない。 +
+これを回避するため、Session StorageにState情報を記録する。
+
+<<Persist State>>の項目を参照。
+
+=== 認証必要なURLに対する直リンクの制御
+
+https://router.vuejs.org/guide/advanced/navigation-guards.html#navigation-guards[navigation-guards] の機構を利用する。 +
+このスケルトンでは、AuthStoreに情報がない場合はログイン画面に差し戻す制御が実装されている。
+
+[source, typescript]
+----
+export const businessSharedRouterGuard = async (
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized
+) => {
+  const auth = useAuthStore();
+  if (to.fullPath === '/') {
+    return auth.isLogin ? MENU_PATH.AUTH + AUTH_TAB_PATH.USERS : true;
+  }
+  return auth.isLogin ? true : '/';
+};
+----
+
+=== 多重Submit制御
+
+SPAなので、F5押下などによる多重Submitは発生しない。 +
+ただし、Submitボタンを多重で押下してしまう可能性はあるため、それを制御する `multipleClickPreventionDirective` を提供する。 +
+<<Directive>> の項目を参照。
+
+全画面での多重押下防止を行いたい場合は、 <<共通ローディング>> 機構を利用する。
+
+加えて、共通ローディングの制御をSubmitButtonのDisabledの制御に利用することで、APIへの通信ロジック中は多重Submitを防ぐことができる。
+
+[source, typescript]
+----
+<button
+  :disabled="!formMeta.valid（バリデーションエラーが発生する時にSubmitボタンを非活性にする） || loading（APIへの通信Stateを画面に返却している場合はロード状況でSubmitButtonを非活性化する）"
+  type="submit"
+>
+  {{ $t('Button.Save') }}
+</button>
+----
+
+== 多言語化及びラベルの管理
+
+https://vue-i18n.intlify.dev/guide/[vue-i18n] を利用し実装されている。詳細な利用方法は公式ドキュメントを参照。
+
+標準では、 `src/assets/i18n` 配下にラベルのソースとなるyamlが配置される。 +
+詳細は <<Yaml記載ルール>> を参照。
+
+=== i18nUtil
+
+`shared/utils/i18n.util`
+
+vue-i18nを補助するためのツール機能が用意されている。複数言語に対応したい場合はこれを修正する。
+
+* `$t()` ：vue-i18nのFilterであるラベル情報の取得を、ビジネスロジック上からコールできる。 +
+ただし、これはSnapshotでしかないため、注意すること。例えば言語の変更を行った場合、自動的に取得したラベルが更新されることは無い。
+
+=== Yaml記載ルール
+
+- 定義格納フォルダとファイル
+
+*src/assets/i18n/message.[言語コード].yaml* +
+エラーメッセージなど、文章として表示する項目を定義するファイル
+
+*src/assets/i18n/label.[言語コード].yaml* +
+タイトルなどラベルとして表示する項目を定義するファイル
+
+*src/assets/i18n/code.[言語コード].yaml* +
+コードと文言でペアとなる、画面に依存しない項目を定義するファイル
+
+- Yaml階層構成
+
+Message, Labelについては、共通で使う項目（Common）を除き、各ページで使う項目について、1階層目はドメイン名、2階層目はページ名、3階層目からKey：Valueのペアで定義を記載する。
+
+例：
+[source, yaml]
+.src/assets/i18n/label.ja.yaml
+----
+Common:
+  YES: はい
+  NO: いいえ
+DomesticPayment:
+  AccountName:
+    AccountNameInput: 口座種別・番号を入力
+  TransferAmount:
+    AccountBalance: 出勤口座残高
+    TransferLimit: 振込限度額
+----
+
+Codeについては、1階層目はコード名、2階層目にコード値：文言のマッピングをKey：Valueとして記載する。 +
+この際、Keyであるコード値が01など0から始まる数字の場合、クオートで囲む必要があるため注意する。
+
+例：
+[source, yaml]
+.src/assets/i18n/code.ja.yaml
+----
+AccountType:
+  '01': 普通
+  '02': 当座
+  '03': 総合
+Gender:
+  '01': 男性
+  '02': 女性
+  '03': 未設定
+----
+
+Codeの情報は、 `CodeLabelUtil` を利用することでKey-Valueの形で取得することができる。
+
+=== メッセージ・ラベル実装
+
+- message.yamlまたはlabel.yamlに定義をする。
+
+[source, yaml]
+.src/assets/i18n/message.yaml
+----
+Messages:
+  InputErrorTitle: 入力エラー
+  NewVersionMessage: 新しいバージョンのアプリが<br/>利用可能です。
+----
+
+== その他フレームワーク機能
+
+=== アニメーション
+
+基本的には処理が軽い https://www.w3schools.com/css/css3_animations.asp[CSS Animation] を利用する。 +
+https://tailwindcss.com/docs/animation[Tailwind] によるラッパーも用意されている。 +
+Javascriptレイヤーから操作する場合は https://animejs.com/[anime.js] を利用する。
+
+- anime.jsの標準的な利用方法。 `fade-animation` のclassを持つDOMをMount時にフェードインする。 +
+[source, typescript]
+----
+<template>
+  <div class="fade-animation"> fade </div>
+</template>
+
+<script setup lang="ts">
+import anime from 'animejs';
+import { onMounted } from 'vue';
+
+onMounted(() => {
+  anime({
+    targets: '.fade-animation',
+    opacity: [0, 1]
+  });
+});
+</script>
+----
+
+- anime.jsのDirective経由での利用方法。 +
+[source, typescript]
+----
+<template>
+  <div v-anime="{ opacity: [0, 1] }"> fade </div>
+</template>
+
+<script setup lang="ts">
+</script>
+----
+
+
+=== 通信処理
+
+Axiosを利用している。詳細は<<通信エラーハンドリング>>に記載の通り。 +
+また、標準のResponseInterceptorでは、 https://ja.wikipedia.org/wiki/ISO_8601[ISO8601] 形式のAPIレスポンスを自動的にDate型に変換する。
+
+=== 共通ローディング
+
+共通ローディングはState管理の複雑性が上がるためアーキとしては用意していない。 +
+ただし、サンプル実装として `loading.component.vue` を用意している。
+
+Custom Composition APIである、 `useApiHandlerResult` と組み合わせることで、ローディング表示処理をシンプル化したり、そもそもローディング表示不要な処理をコントロールすることができる。
+
+=== ヘルパー
+
+このアーキでは、Typescriptの機能を拡張するUtilが用意されている。
+
+|===
+|deep-readonly.ts| ネストした構造体をreadonly化するための型定義。
+|sleep.ts| awaitで呼び出すことでsleepを実現する処理。
+|typed-emitter.ts| EventEmitterを型を指定して利用できる処理。
+|===
+
+
+=== ユーティリティクラス
+
+このアーキでは、いくつかの開発補助となるユーティリティが用意されている。
+
+==== @core/側
+
+|===
+|ArrayUtil| 配列のクリア、結合、置き換え機能。
+|DateUtil| 日付系処理、 `DateUtil.setDefaultTimeZone()` でタイムゾーンを渡すことで、タイムゾーン対応が可能。 +
+format類は https://github.com/marnusw/date-fns-tz[date-fns] に準拠する。
+|FileUtil| BlobとBase64の相互変換を行う。
+|GoogleTagManagerUtil| GTM/GAに情報を送信するためのUtil。
+|KanaTransformUtil| かな/半角カナ変換。
+|LocalStorageUtil| LocalStorage便利化。
+|SessionStorageUtil| SessionStorage便利化。
+|===
+
+==== @shared/側
+
+|===
+|CodeLabelUtil| `code.[言語].yaml` からコード情報をKey-valueの配列で取得する。
+|i18nUtil| <<i18nUtil>> 参照
+|NotificationCenterUtil| アプリ全体でのEventのEmittingを行う。
+|UpdateDetector| サーバーにアップロードされているindex.htmlの更新を検知し、更新を促すダイアログを表示する。
+|===
+
+=== Component
+
+このアーキで用意されているグローバルコンポーネントは以下の通り。
+
+|===
+|nl2br| 表示する文字列の改行コードを `<br/>` タグへ置き換える。XSS対策にVueのコンポーネント上でこれを行っている。
+|===
+
+=== Directive
+
+AngularのDirectiveと同じ概念の、コンポーネントに対しイベントのフックなどを行うための機能。Vue.js 3.0では、カスタムディレクティブを登録し、各コンポーネントで利用できる。
+
+* カスタムディレクティブ公式ドキュメント +
+https://v3.ja.vuejs.org/guide/custom-directive.html
+
+|===
+|multipleClickPreventionDirective| クリック要素に設定することで、一度クリックされたら1秒間クリックイベントを無視する。
+|rippleEffectDirective| buttonタグに対し、マテリアルデザインのようなリップルエフェクトを表示する。
+|tapEventDirective| HTMLタグに対し、クリックイベントにフックし、Loggerへタップイベントを送信する。
+|===
+
+=== GlobalFilter
+
+AngularのPipeと同じ概念の、画面表示で共通のテキストフォーマットを適用する機能。Vue.js 3.0では、グローバルフィルタを登録し、各コンポーネントで利用できる。
+
+* グローバルフィルタ公式ドキュメント +
+https://v3.ja.vuejs.org/guide/migration/filters.html#%E3%82%AF%E3%82%99%E3%83%AD%E3%83%BC%E3%83%8F%E3%82%99%E3%83%AB%E3%83%95%E3%82%A3%E3%83%AB%E3%82%BF
+
+==== フィルタの基本的な使い方
+
+* html側から `$filters.{フィルタ名}(value, パラメータ?)` で利用できる。
+
+例：
+[source, html]
+----
+<template>
+  <h1>Bank Account Balance</h1>
+  <p>{{ $filters.currencyUSD(accountBalance) }}</p>
+
+  <div>
+    <span>{{ $t('UserDetailModal.Birthday') }}</span>
+    <span
+      >{{ user.userDetail.birthday ?
+      $filters.formatDate(user.userDetail.birthday, 'yyyy-MM-dd') : '-'
+      }}</span
+    >
+  </div>
+</template>
+----
+
+==== グローバルへの登録方法
+
+* カスタムフィルタを追加したい場合は、下記 `commaSeparatedNum` の実装を参考し、`.src/shared/global-filters/index.ts` で登録してください。※渡されるコンテキストの型が不一致が発生する可能性があるため、処理する前に判定するようにしましょう。
+
+[source, typescript]
+.src/shared/global-filters/index.ts
+----
+/**
+ * Globalで定義するフィルタを宣言する。
+ * 処理が大きいフィルタを作る場合は処理を別のファイルに書き出すか、Componentにしてしまう。
+ * ex) Nl2Br Component
+ */
+export const filters = {
+  // 数値カンマ区切り
+  commaSeparatedNum(value: string | number) {
+    if (!value) {
+      return;
+    }
+    return String(value).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+  },
+  ……
+};
+----
+
+==== アーキで用意しているカスタムフィルタの説明
+
+* `commaSeparatedNum(value: string | number)` +
+カンマ区切りの数字。渡された値をカンマ区切りの文字列へ変換 +
+例) 289998 ⇒ 289,998
+
+* `currencyJPY(value: string)` +
+日本円金額。渡された値をカンマ区切りの円マーク付き文字列へ変換 +
+例) 289998 ⇒ ¥289,998
+
+* `currencyUSD(value: string)` +
+USドル金額。渡された数値をカンマ区切りのドルマーク付き文字列へ変換 +
+例) 289998 ⇒ $289,998
+
+* `formatDate(value: Date, format: string)` +
+日付文字列。渡された日付型の値を、第2引数の日付フォーマットの文字列へ変換 +
+
+* `validationMessage(value: string, label: string)` +
+サーバーサイドから返却されたACTSの標準エラーメッセージの `@@Field` を、第2引数のラベル名へ置き換える。 +
+
+=== ダイアログ・モーダル表示
+
+https://modal.jenesius.com/[jenesius-vue-modal] を利用して実現しているが、UIコンポーネントフレームワークを導入する場合、この処理の差し替えを検討する事。
+
+==== ModalUtilクラスの基本的な使い方
+各Modalごとに開閉やアニメーションの挙動を管理するため、jenesius-modalのラッパークラスであるModalUtilクラスを用意している。 Modalの開閉にはModalUtilクラスを使用すること。 +
+ModalUtilクラスのメソッドにModalConfigを渡すことでモーダルごとに挙動を変更することが可能。 +
+ModalTransitionTypeはFADE_INとSLIDE_UPを用意しているが、
+他にアニメーションが必要な場合はModalTransitionTypeを追加し、setTransitionメソッドでtransitionを定義すること。
+[source, typescript]
+----
+// Modalを開く
+ModalUtil.push(
+  SampleComponent, // component
+  { title: 'タイトル' }, // componentで使用するparams
+  { dismissible: true, transitionType: ModalTransitionType.SLIDE_UP } // ModalConfig
+)
+----
+
+[source, typescript]
+----
+export interface ModalConfig {
+  dismissible?: boolean; // 背景タップで閉じるのを許可
+  transitionType?: ModalTransitionType; // アニメーションタイプ
+}
+
+export class ModalUtil {
+  /**
+    * modalをpushする。
+    * pushする前にconfig、transitionを変更する
+    *
+    * @static
+    * @param {any} component
+    * @param {any} [params]
+    * @param {ModalConfig} [modalConfig]
+    * @return {*}  {Promise<Modal>}
+    * @memberof ModalUtil
+    */
+  public static async push(
+    component: any,
+    params?: any,
+    modalConfig?: ModalConfig
+  ): Promise<Modal> {
+    this.setConfig(modalConfig);
+    this.configs.push(modalConfig);
+
+    return pushModal(component, params);
+  }
+}
+----
+
+=== FocusTrap
+
+`@vueuse/integrations` を利用して実装している。 +
+SPAの画面遷移時に、Tabキーでフォーカスが画面外に移動することを防ぐための機能。 +
+これを実装しない場合、ユーザーが画面外にフォーカスを移動させることができ、アクセシビリティの問題や想定外の操作をされ障害に繋がる可能性がある。 +
+詳細は https://vueuse.org/integrations/useFocusTrap/[公式ドキュメント] を参照。
+
+=== sanitizeHTML
+
+`sanitize-html` を利用して実装している。 +
+XSS対策のため、HTMLタグをサニタイズする機能。 +
+GlobalFilterとして登録されているため、 `{{ $filters.sanitizeHTML('<script>alert("XSS")</script>') }}` のように利用することができる。
+
+=== 日本語の自然な改行
+
+`budoux` を利用して実装している。 +
+日本語の文章において、適切な位置で改行を行う機能。 +
+WebComponentとして実装されているため、 <budoux-ja>改行したい文章</budoux-ja> のように利用することができる。 +
+v-text/v-htmlディレクティブを利用することで、Vue.jsの変数を埋め込むことも可能。 ex: <budoux-ja v-text="message"></budoux-ja> +
+詳細は https://github.com/google/budoux/tree/main/javascript/[公式ドキュメント] を参照。
+
+== CSSフレームワーク
+
+このアーキでは https://tailwindcss.com/[Tailwind.css] を採用している。 +
+Tailwindはユーティリティ機能を提供するフレームワークであって、フルスタックなUIコンポーネントフレームワークではない。 +
+あくまでも、HTML/CSSが分かるUXコーディングの人材がメンバーに居れば、開発の手助けになるフレームワークの位置づけである。
+
+よって、必要に応じて追加のUIフレームワークを導入していくこと。
+
+* https://daisyui.com/[DaysyUI。Tailwindを使ったフルスタックUIコンポーネント。おすすめ。]
+* https://tailwindcomponents.com/[TailwindCSSを使ったコンポーネント実装サンプル集]
+* https://tailwindcss.com/docs/plugins[TailwindCSS公式のプラグイン]
+* https://coliss.com/articles/build-websites/operation/css/tailwind-css-ui-components-libraries.html[TailwindCSSベースのUIコンポーネント集]
+* https://next.vuetifyjs.com/en/[vuetifyjs]
+* https://www.antdv.com/docs/vue/introduce[Ant Design Vue(Ng-zorroのVue.js版)]
+* https://ionicframework.com/docs/ja/vue/quickstart/[ionic]
+* https://element-plus.org/en-US/[Element Plus]
+
+=== Ant Design Vue注記
+
+Ant Design Vueを採用するプロジェクトが多い為、導入において気をつけるべき点として、 https://antdv.com/docs/vue/getting-started#Import-on-Demand[Vite向けの導入方法] を確認すること。 +
+サンプルとして https://innersource.accenture.com/projects/JRD/repos/mcoe-vuejs-assetize/compare/commits?sourceBranch=refs%2Fheads%2Ffeature%2Fantdv&targetBranch=refs%2Fheads%2Fmain[導入ブランチ] も提供している。
+
+== MockServer
+
+`mock_server` ディレクトリに存在する。 express.jsを利用したシンプルなモック。 +
+サーバーサイドのレスポンスが固まっていない時期など、ローカル開発時に利用する。
+
+* `public` フォルダに静的ファイルを配置すると、そのままのディレクトリ構成でホストする。
+* Live Reload機能を持っているため、ファイルを更新すれば再起動なしに反映される。
+* OpenAPI(Swagger)からExportされたYAMLを読み込むことが出来る。API定義のExampleの項目が埋まっていればそのままの構成でモックサーバーとして動作する。
+
+== Testing
+
+UTには https://vitest.dev/[Vitest]、E2Eには https://playwright.dev/[Playwright] を利用している。起動方法についてはReadme.mdを参照。
+
+=== Vitest
+
+Vueが提供する、Vite上で高速動作するJavascript向けUTフレームワーク。
+
+==== 各種実装のサンプル
+
+- `src/core/utils/local-storage.util.spec.ts` UtilClassのテスト
+- `src/shared/components/alert-dialog.component.spec.ts` Componentのテスト
+- `src/business/stores/auth.store.spec.ts` Storeのテスト
+
+=== Playwright
+
+Microsoftが提供する様々なブラウザを指定して動作するWebテストフレームワーク。 +
+ブラウザ上で操作するだけで自動的にテストコードを吐き出してくれるコードジェネレータを有する。 +
+また、簡易的なVisual Regression Test機能を有する。
+
+つまり、当アーキではE2Eのリグレッションテストがブラウザ操作のみで作成できる。
+
+==== コードジェネレータの起動
+
+`pnpm playwright codegen` で起動する。 +
+操作方法は https://playwright.dev/docs/codegen-intro#running-codegen[公式ドキュメント] を参照。
+
+==== 各種実装のサンプル
+
+- `e2e/business/login.spec.ts` ログインまでの動作確認。
+- `e2e/business/dashboard-vrt.spec.ts` ダッシュボード画面のVisual Regression Test。
+
+== コーディング規約
+
+https://v3.vuejs.org/style-guide/[Vue.js3のスタイルガイド] に準ずる。
+ここでは、スタイルガイドでも表記が分かれる部分や、独自の規約について記述する。
+
+=== Vue.jsの規約
+
+- 理由がない限り、 https://vuejs.org/api/reactivity-core.html#reactive[Reactive] ではなく https://vuejs.org/api/reactivity-core.html#ref[Ref] を利用する。
+- 理由がない限り、 https://vuejs.org/api/sfc-script-setup.html[Script Setup構文] を利用する。
+- PiniaのStoreにおいて、Actionから直接画面に値を返却してはいけない。画面に値を返却する場合はGetterにMethodを定義し、それを利用する。
+- computed, watchの多用はパフォーマンスの低下に繋がるため、 `それが本当にリアクティブである必要があるか` 、 `中のMethodが短時間に大量に変更が行われないか` を観点として確認を行うこと。
+
+=== 命名規則
+
+==== ファイルの命名
+
+Vue.jsのスタイルガイドに則り https://v3.vuejs.org/style-guide/#single-file-component-filename-casing-strongly-recommended[kebab-case] で統一する。 +
+Store、Repository、UtilなどのClassについては、postfixに *`.`* 区切りで役割に合った名称を付与する。
+
+* user.store.ts (UserStore)
+* auth.repository.ts (AuthRepository)
+* code-label.util.ts (CodeLabelUtil)
+
+==== コンポーネントの命名
+
+CamelCaseで統一する。Pageコンポーネントは *`Page`* をpostfixに付与する。
+
+[source, typescript]
+----
+export default defineComponent({
+  name: 'LoginPage',
+  components: {},
+})
+----
+
+
+=== コード記述上の規約
+
+できるだけ簡潔に、レビュアーに分かりやすいようにコードを記述する。
+ESLintのcomplexityなどのルールでチェックが行われるが、`eslint-disable` で避けるのではなく、コードのリファクタリングを検討する。
+
+==== 不要なネストを控える
+
+if文などによる不要なネストは、ガード節などを利用しできるだけ控える。
+
+悪いコードの例:
+[source, typescript]
+----
+function test(a: string | undefined , b: string | undefined) {
+  let result = 0;
+  if (a !== undefined) {
+    result = 1;
+  } else {
+    if (b !== undefined) {
+      result = 2;
+    }
+  }
+  return result;
+}
+----
+
+良いコードの例:
+[source, typescript]
+----
+function test(a: string | undefined , b: string | undefined) {
+  if (a !== undefined) {
+    return 1;
+  }
+  if (b !== undefined) {
+    return 2;
+  }
+  return 0;
+}
+----
+
+==== 適切にメソッドを分割する
+
+https://qiita.com/xuj/items/6d1dc4373798a8a5f22c[Composed Methodパターン]などに準拠する。
+
+==== 三項演算子、TypescriptのOperatorsを利用する
+
+https://qiita.com/EdyEric/items/3cb3088cefb9f5f2586b[三項演算子]
+https://typescript-jp.gitbook.io/deep-dive/future-javascript/spread-operator[スプレッド演算子]
+https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-0.html#short-circuiting-assignment-operators[短絡代入演算子]
+
+=== 命名における禁則事項
+
+* ローマ字は使用しない
+** 例外として固有名詞の場合は許容する
+*** 例: 上島コーヒー ⇒ UeshimaCoffee
+* 連番や意図が推測できない名前は使用しない
+** 例: BAT_001, a
+** 例外としてループカウンタの``i``等、慣習的に使用される名前は対象外とする
+* 名前は省略しない
+** 例: prgrm ⇒ Program
+* ascii文字以外を使用しない
+
+== 開発Tips
+
+=== Int64の扱い
+
+gRCP/Javaで扱われるInt64について、フロントエンドは原則Stringで受け取るようになっている。 +
+表示だけであればこれで問題ないが、もしフロントエンドでこれらに対して計算を行いたい場合、 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt[BigInt] を利用する。
+
+=== Vueのリアクティブな値の扱い
+
+https://vuejs.org/api/reactivity-core.html[公式ドキュメント]
+
+==== RefとReactive
+
+Vue.jsではリアクティブな値の定義はRefとReactiveが利用できる。が、原則Refを利用する。 +
+ReactiveはProxyで作られており、その値に対して代入が行われた際にリアクティブ性が失われてしまい、バグの温床となりやすい。
+
+[source, typescript]
+----
+<script setup lang="ts">
+import { reactive } from "vue";
+
+const state = reactive({
+  count: 0,
+});
+
+let { count } = state;
+
+const increment = () => {
+  count++; // ここでcountのリアクティブ性は失われ、画面のcountはインクリメントされない。
+};
+</script>
+
+<template>
+  <p>{{ count }}</p>
+  <button @click="increment">+</button>
+</template>
+----
+
+==== Computed
+
+Computed（算出プロパティ）はMethodが定義できるリアクティブな値を定義する。 +
+キャッシュ処理など行われるもののパフォーマンス影響が大きいため、気をつけて実装すること。短期間に更新される値の定義には向かない。 +
+*なお、PiniaのGetterで定義された処理は全てComputedでの定義となる。* Actionにデータ取得処理を定義してはいけない規約は、可読性の問題だけではなく、リアクティブ性の維持にもある。
+
+[source, typescript]
+----
+let count = ref(0);
+const lessThanThree = computed<string>(() =>
+  count > 3 ? '3以上' : '3以下'
+);
+
+const onPressCount = () => {
+  count++;
+};
+----
+
+===== Writable Computed
+
+computedはsetterも定義ができる。これにより画面のコードの記述量を減らすことができる。 +
+例えば2つのinput項目があり、相互的に値が影響するようなコードを書く場合などに利用する。 +
+以下に金額と金額+消費税の相互参照するinput項目を、ComputedとWatchで実装する場合のサンプルを記載する。
+
+[source, typescript]
+----
+<template>
+  <input type="number" v-model="price" />
+  <input type="number" v-model="priceWithTax" />
+</template>
+
+<script setup>
+import { watch } from 'vue';
+let price = ref(0)
+let priceWithTax = ref(0)
+watch(
+  () => price,
+  newPrice => {
+    priceWithTax = newPrice * 1.1
+  }
+);
+watch(
+  () => priceWithTax,
+  newPriceWithTax => {
+    price = newPriceWithTax / 1.1
+  }
+);
+</script>
+----
+
+これをWritable Computedで書き直すと以下のようになる。
+
+[source, typescript]
+----
+<template>
+  <input type="number" v-model="price" />
+  <input type="number" v-model="priceWithTax" />
+</template>
+
+<script setup>
+let price = ref(0);
+const priceWithTax = $computed({
+  get: () => price * 1.1,
+  set: newPriceWithTax => {
+    price = newPriceWithTax / 1.1;
+  }
+});
+</script>
+----
+
+==== Watch
+
+渡したリアクティブな値が更新された際に実行される処理を定義する。 +
+コードの可読性が損なわれる可能性が高いため、多用は禁止。
+
+[source, typescript]
+----
+let count = ref(0);
+watch(count, (count, prevCount) => {
+  console.log(count); //
+  console.log(prevCount); // 過去の
+});
+count++; // countのインクリメントでwatchの中身が実行される
+----
+
+=== Vue.jsのLifecycle Hooks
+
+https://vuejs.org/guide/essentials/lifecycle.html[公式ドキュメント]
+
+ライフサイクルについて、特に気をつけるべきは、`setup()` 構文が呼ばれた後に `beforeMount` が実行される。
+
+=== Vue.jsの公式ドキュメントについて
+
+日本語ドキュメントは基本的に更新が追いついておらず、古い記法が平然と掲載されているため、英語語または简体中文ドキュメントを確認すること。
+
+https://vuejs.org/guide/introduction.html
+
+
+== その他
+
+=== dependenciesとdevDependencies
+
+`dependencies` には `src/` ディレクトリ以下から参照されるライブラリを設定し、`devDependencies` にはビルド時にのみ参照されるもの、Linterやテストに関わるもの、d.tsライブラリ（`@types/*`）などを配置する。
+脆弱性チェックコマンドは、標準で `dependencies` 以下を確認するようになっている。
+
+=== Rollup optionの設定
+
+このアーキでは、アプリの本番ビルドに https://rollupjs.org/guide/en/[Rollup] を利用している。 +
+`vite.config.ts` の `rollupOptions` に、それらの設定、及びプラグインの設定が可能。 +
+標準では、 `console.log()` を削除するプラグインが導入されている。
+
+==== 旧ブラウザへの対応
+
+このアーキがが標準でサポートしているブラウザは https://caniuse.com/es6-module[ESM に対応したブラウザ] のみである（IE は非対応）。
+更に古いバージョンのブラウザサポートが必要である場合、 https://github.com/vitejs/vite/tree/main/packages/plugin-legacy[@vitejs/plugin-legacy] を導入すること。
+
+加えてVite4より、BigIntの正式サポートと引き換えに、 https://vitejs.dev/blog/announcing-vite4.html#browser-compatibility[Safari14が非推奨] となった。 +
+Safari14以下のサポートを復活させるには、上記 `@vitejs/plugin-legacy` を利用すること。
+
+==== Viteとの挙動の違い
+
+ViteはESBuildを利用したソリューションであり、実際の製品ビルドはRollupを使って実行される。 +
+よって、実際にデプロイする物と、`pnpm start` で動かす資産は微妙に動作が異なってくる可能性がある。 +
+簡易的にビルド成果物が、確認できるように、 `pnpm run build` でビルドした資産を `mock_server` で確認することができる。 +
+`index.js` の35行目以降のコメントアウトを解除すること。
+
+特に、新しいライブラリを追加した場合などはこれで確認したほうが良い。
+
+==== Viteとの挙動の違い・アセット編
+
+`src/assets/` に配置されている静的資産類は、ビルドの度にユニークなファイル名が設定される。 +
+Vite上では相対パスでも画像が表示されるが、Rollupでビルドすると、パスが変わり参照できなくなる。 +
+必ず `@/assets/` から指定しパスを定義すること。
+
+CSSで指定する時は
+```
+background: url('@/assets/img/background.svg') 0 0 no-repeat;
+```
+など。
+
+`public` に配置されている静的資産類は、リネームなど行われない、完全な静的資産として扱われる。
+
+=== 日付系npm
+
+このアーキでは、 https://date-fns.org/[date-fns] の利用のみ許可する。 +
+タイムゾーン対応などを行う場合や、フォーマッタ処理の地方言語など、複数の日付系ライブラリが入っている環境下は不要な問題を起こしがちである。 +
+特に、既に更新が止まっており、ファイルサイズの増加にしかつながらない `moment.js` の利用は厳禁である。 +
+公式からも明確に https://momentjs.com/docs/#/-project-status/[非推奨] とされている。
+
+=== ライセンス表記
+
+ビルド成果物のソースコード中に利用ライブラリのライセンス表記が含まれるため、Web向けにビルドしている場合はライセンス表記専用ページなどは作る必要は無い。
+
+=== チャンク戦略
+
+Vite3.0以降はビルド成果物に対し、ライブラリだけを切り出した `vendor.js` の生成機能がデフォルトで無効となった。 +
+Rollup optionの設定に `splitVendorChunkPlugin` を追加すれば、vender を分割するチャンク戦略を引き続き使用できる。 +
+詳細は https://vitejs.dev/guide/build.html#chunking-strategy[公式ドキュメント] を参照。
+
+=== Figmaとの連携
+
+https://www.figma.com/community/plugin/785619431629077634/Figma-Tailwindcss[Figma-Tailwindcss] を利用することで、Figmaからtailwind.config.jsを出力することができる。 +
+https://www.figma.com/community/plugin/842128343887142055/figma-to-code-html-tailwind-flutter-swiftui[Figma to Code] を利用することで、FigmaのコンポーネントをTailwindCSSベースのHTMLに変換することができる。ただし精度は低い。 +
+https://marketplace.visualstudio.com/items?itemName=figma.figma-vscode-extension[Figma for VS Code] が推奨プラグインとして導入されている。簡単なCSSのスタイルであれば直接Figmaを開いてここからCSSを引っ張ることができる。
+
+上記はOSSかつFigma内のみで動作するため、コードがFigma外部流出する事やライセンス、料金について考える必要は無い。 +
+他にもSaaSでAI推論するような制度の良い有償製品は存在するが、プロジェクトの責任に於いて運用すること。
+
+=== 環境設定ファイルの外出しブランチ
+
+1回のビルドで全環境分のビルドを行うことができる。 +
+https://innersource.accenture.com/projects/JRD/repos/mcoe-vuejs-assetize/browse?at=refs%2Fheads%2Ffeature%2Fimport-meta-env[ブランチはこちら。] +
+```
+pnpm run build、pnpm run build:prod 後、 ./dist/ フォルダ に環境ごとの設定ファイルがjsで生成されます。
+index.html からは常に environments.js が参照されていますので、デプロイ時これを置き換え、不要な環境設定ファイルは削除してください。
+また index.html から参照時にビルド時のタイムスタンプのパラメータを付与していますので、キャッシュの残留などはindex.html以外は気にしなくて良いです。
+
+その他留意事項としては
+- pnpm start mode {環境} 時はそのままenvironmentsフォルダの環境ごとの.envファイルを読みます。
+- これまでは、VITE_API_ENDPOINT のように接頭詞に VITE_ 付いていましたが、この対応後は削除する必要があります（アプリが起動しません）。
+- 環境増やす場合は、 build_script/build.js の4行目を修正してください。
+- .env.example という、テンプレート的な環境設定ファイル（値が設定されていない項目だけの.env）が新たに必要となります。
+```
+
+=== 大量の一覧を作る場合のComponent選定
+
+Excelのような大量の表を作る場合、純粋にTableタグを使ってしまうとパフォーマンスに多大な影響が発生する。 +
+これに対応する場合、 https://github.com/Akryum/vue-virtual-scroller[vue-virtual-scroller] のような、大量の一覧が表示されても部分描画しかしないようなComponentを利用して一覧を作成する。 +
+件数の目安としては1000件超えるような場合は必ず検討すること。
+
+=== それ以外のパフォーマンスチューニング
+
+SPAの画面の速度が遅いのは、主にDOMの描画しすぎか、通信処理が詰まっていることに起因する。 +
+前者は、 https://ja.vuejs.org/api/built-in-directives.html#v-memo[v-memo] 、 https://ja.vuejs.org/api/built-in-directives.html#v-once[v-once] 、 https://ja.vuejs.org/api/built-in-directives.html#v-cloak[v-cloak] を利用し描画処理をできるだけ抑える。 +
+後者は https://developer.chrome.com/docs/devtools/[Chromeの開発者ツール] や https://devtools.vuejs.org/guide/devtools-perf.html#_5-export-the-profiling-data[vue-devtool] を利用する。 +
+特に `vue-devtool` はコンポーネント単位での描画性能を計測できるため活用すること。
+
+=== VSCode環境下で自動的にViteが実行されるのを制御する
+
+`.vscode/settings.json` に `vite.open:false` を追加する。
+
+=== OpenAPI(Swagger)からの自動生成。
+
+基本的にADIPからの自動生成で賄えるが、ADIPを採用していない場合、 https://openapi-generator.tech/docs/generators/typescript-axios/[OpenAPI Generator TypeScript Axios] を利用する。

@@ -1,0 +1,68 @@
+SystemMessages:
+  SystemErrorTitle: エラー
+  SystemErrorApi: 反応がありません。しばらく時間を空けてから再度お試しください。
+  SystemErrorAuth: 認証処理において問題が発生しました。\nお手数ですが再度ログインを行ってください。
+  SystemErrorFatal: アプリに何らかの問題が発生したようです。アプリを再起動していただくか、しばらく時間を空けてから再度お試しください。
+  SystemErrorMaintenance: メンテナンス中です。
+  SystemErrorNetwork: 通信が途切れてしまったようです。通信状況を確認し電波の良い場所で再度お試しください。
+  SystemErrorValidate: 不正なリクエストが送信されました。
+  VersionTitle: 更新検知
+  Version: 新しい機能が利用できるようになりました。\nページを再読込みします。
+
+ValidMessages:
+  Max: '{max} 以下で入力してください。'
+  Min: '{value} 以上で入力してください。'
+  LessThen: '{max} 未満で入力してください。'
+  MoreThan: '{min} より大きい数にしてください。'
+  NotEqual: '{notEqual} 以外の数にしてください。'
+  Required: '本項目を入力してください。'
+  Email: '有効なメールアドレスを入力してください。'
+  Telephone: '有効な電話番号を入力してください。'
+  PostalCode: '有効な郵便番号を入力してください。'
+  URL: '有効なURLを入力してください。'
+  UUID: '有効なUUIDを入力してください。'
+  OneOf: '{values} のいずれかを入力してください。'
+  NotOneOf: '{values} 以外のものを入力してください。'
+  MinLength: '{min} 文字以上で入力してください。'
+  MaxLength: '{max} 文字以下で入力してください。'
+  EqualLength: '{length} 文字で入力してください。'
+  Pattern: '{regex} の形式で入力してください。'
+  DefaultMessage: '入力内容を確認してください。'
+  Trim: '前後の空白を取り除いてください。'
+  Date: '日付を入力してください。'
+  UpperCase: '小文字のみ入力してください。'
+  LowerCase: '大文字のみ入力してください。'
+  Positive: '正の数にしてください。'
+  Negative: '負の数にしてください。'
+  HalfWidthInteger: '半角整数で入力してください。'
+  HalfWidthAlphanumeric: '半角英数で入力してください。'
+  HalfWidthAlphabet: '半角英字で入力してください。'
+  HalfWidthNumeral: '半角数字で入力してください。'
+  HalfWidthKana: '半角カナで入力してください。'
+  FullWidth: '全角で入力してください。'
+  FullWidthAndSpace: '全角（スペース含め）で入力してください。'
+  FullWidthAlphanumeric: '全角英数で入力してください。'
+  FullWidthAlphabet: '全角英字で入力してください。'
+  FullWidthNumeral: '全角数字で入力してください。'
+  FullWidthKana: '全角カナで入力してください。'
+  FullWidthKanaAndSpace: '全角カナ（スペース含め）で入力してください。'
+  AlphanumericAndSymbol: '半角英数字と記号で入力してください。'
+  Default: '入力値が不正です。'
+  Year: '有効な西暦年を入力してください。'
+  Month: '有効な月を入力してください。'
+  Day: '有効な日付を入力してください。'
+  Currency: '有効な金額数値を入力してください。'
+  Percentage: '有効なパーセント数値(小数点以下２位まで)を入力してください。'
+  DecimalNumberFormat: '小数点以降の数値を入力してください。'
+  IntegerNumber: '小数点以上は{length} 桁までの数字を入力してください。'
+  DecimalNumber: '小数点以下は{length} 桁までの数字を入力してください。'
+  Divisible: '{divisor} に整除できる数値を入力してください。'
+  SafetyPassword: '小文字・数字・記号を組み合わせて入力してください。'
+  ValidatorDateFormat: '入力した日付のフォーマットが正しくありません。'
+  FutureDate: '{baseDate}より後の日付を入力してください。'
+  PastDate: '{baseDate}より前の日付を入力してください。'
+  IgnoreEmoji: '絵文字は入力できません。'
+  CustomerMsg1: '開始日は今年度に設定してください。'
+  CustomerMsg2: '終了日を未来に設定してください。'
+  CustomerMsg3: '有効期限は7日以上に設定してください。'
+  CustomerMsg4: '生年月日は未来の日付で入力できません。'

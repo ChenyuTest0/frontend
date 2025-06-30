@@ -1,0 +1,96 @@
+<div
+  classes="modal-container"
+  content-class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex"
+>
+  <div class="relative mx-auto my-6 min-w-96" v-bind="$attrs">
+    <!--content-->
+    <div
+      class="relative flex w-full cursor-default flex-col rounded-lg border-0 bg-white shadow-lg outline-none focus:outline-none"
+    >
+      <!--header-->
+      <div
+        class="border-blueGray-200 flex items-start justify-between rounded-t border-b border-solid p-5"
+      >
+        <h3 class="text-3xl font-semibold">
+          {{ $t('UserDetailModal.ModalTitle') }}
+        </h3>
+        <span
+          class="float-right ml-auto border-0 bg-transparent p-1 text-3xl leading-none font-semibold text-black opacity-5 outline-none focus:outline-none"
+        >
+          <span
+            class="block h-6 w-6 bg-transparent text-3xl text-black opacity-5 outline-none focus:outline-none"
+          >
+            ×
+          </span>
+        </span>
+      </div>
+      <!--body-->
+      <div v-if="!detailLoading" class="relative w-full flex-col px-10 py-6">
+        <div class="text-xl break-all">
+          <span class="mr-4 font-bold">{{ $t('UserDetailModal.Id') }}</span>
+          <span>{{user.userDetail.id}}</span>
+        </div>
+        <div class="text-xl break-all">
+          <span class="mr-4 font-bold">{{ $t('UserDetailModal.Name') }}</span>
+          <span>{{user.userDetail.name}}</span>
+        </div>
+        <div class="text-xl break-all">
+          <span class="mr-4 font-bold">{{ $t('UserDetailModal.Email') }}</span>
+          <span>{{user.userDetail.email}}</span>
+        </div>
+        <div class="text-blueGray-500 text-xl leading-relaxed break-all">
+          <span class="font-bold">{{ $t('UserDetailModal.Detail') }}</span>
+          <Nl2Br class="ml-4 max-w-xs" :text="user.userDetail.detail" />
+        </div>
+        <div class="text-xl">
+          <span class="mr-4 font-bold"
+            >{{ $t('UserDetailModal.Birthday') }}</span
+          >
+          <span
+            >{{ user.userDetail.birthday ?
+            $filters.formatDate(user.userDetail.birthday, 'yyyy-MM-dd') : '-'
+            }}</span
+          >
+        </div>
+        <div class="text-xl">
+          <span class="mr-4 font-bold"
+            >{{ $t('UserDetailModal.ExpireDate') }}</span
+          >
+          <span
+            >{{ $filters.formatDate(user.userDetail.validStartDate,
+            'yyyy-MM-dd') }}{{ user.userDetail.validStartDate ? ' ~ ' : '-' }}{{
+            $filters.formatDate(user.userDetail.validEndDate, 'yyyy-MM-dd')
+            }}</span
+          >
+        </div>
+      </div>
+      <!--footer-->
+      <div
+        class="border-blueGray-200 mt-4 flex items-center justify-end rounded-b border-t border-solid p-6"
+      >
+        <button
+          class="background-transparent mr-1 mb-1 px-6 py-2 text-lg font-bold text-blue-700 uppercase transition-all duration-150 ease-linear outline-none focus:outline-none"
+          type="button"
+          @click="onClickEdit"
+        >
+          {{ $t('Button.Edit') }}
+        </button>
+        <button
+          class="background-transparent mr-1 mb-1 px-6 py-2 text-lg font-bold text-blue-700 uppercase transition-all duration-150 ease-linear outline-none focus:outline-none"
+          type="button"
+          @click="onClickDelete"
+        >
+          {{ $t('Button.Delete') }}
+        </button>
+        <button
+          class="background-transparent mr-1 mb-1 px-6 py-2 text-lg font-bold text-blue-700 uppercase transition-all duration-150 ease-linear outline-none focus:outline-none"
+          type="button"
+          @click="popModal"
+        >
+          {{ $t('Button.OK') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<LoadingMask :loading="detailLoading || deleteLoading" />

@@ -1,0 +1,80 @@
+<div class="flex w-full flex-wrap">
+  <!-- Login Section -->
+  <div class="flex w-full flex-col md:w-1/2">
+    <div class="flex justify-center pt-12 md:-mb-24 md:justify-start md:pl-12">
+      <a href="#" class="bg-black p-4 text-xl font-bold text-white"
+        >{{ $t('LoginPage.Logo') }}</a
+      >
+    </div>
+
+    <div
+      class="my-auto flex flex-col justify-center px-8 pt-8 md:justify-start md:px-24 md:pt-0 lg:px-32"
+      v-loading="loading"
+    >
+      <p class="title">{{ $t('LoginPage.Welcome') }}</p>
+
+      <form class="flex flex-col pt-3 md:pt-8" @submit.prevent="onSubmit">
+        <div class="flex flex-col pt-4">
+          <label for="email" class="text-lg">{{ $t('LoginPage.Email') }}</label>
+          <input
+            id="email"
+            type="email"
+            placeholder="your@email.com"
+            class="focus:shadow-outline mt-1 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
+            v-model="mailAddressField"
+          />
+          <span class="p-1 text-xs text-red-500"
+            >{{ $filters.validationMessage(mailAddressError,
+            $t('LoginPage.Email')) }}</span
+          >
+        </div>
+
+        <div class="flex flex-col pt-4">
+          <label for="password" class="text-lg"
+            >{{ $t('LoginPage.Password') }}</label
+          >
+          <input
+            id="password"
+            type="password"
+            placeholder="Password"
+            class="focus:shadow-outline mt-1 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
+            v-model="passwordField"
+          />
+          <span class="p-1 text-xs text-red-500"
+            >{{ $filters.validationMessage(passwordError,
+            $t('LoginPage.Password')) }}</span
+          >
+        </div>
+
+        <button
+          v-multiple-click-prevention
+          v-ripple
+          v-tap-event="`click login`"
+          :disabled="!formMeta.valid || loading"
+          type="submit"
+          value=""
+          class="relative mt-8 overflow-hidden bg-black p-2 text-lg font-bold text-white hover:bg-gray-700 disabled:bg-gray-700"
+        >
+          {{ $t('LoginPage.Login') }}
+        </button>
+      </form>
+      <div class="pb-12 pt-12 text-center">
+        <p>
+          {{ $t('LoginPage.DoNotHaveAnAccount') }}
+          <a href="#" class="font-semibold underline"
+            >{{ $t('LoginPage.RegisterHere') }}</a
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Section -->
+  <div class="w-1/2 shadow-2xl">
+    <img
+      class="fade-animation hidden h-screen w-full object-cover md:block"
+      src="https://picsum.photos/800"
+    />
+  </div>
+</div>
+<LoadingMask :loading="loading" :isTransparent="true" />

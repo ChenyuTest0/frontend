@@ -1,0 +1,36 @@
+BranchName:
+  '001': Shinbashi Branch
+  '002': Shinsaibashi Branch
+  '003': Shinagawa Branch
+  '004': Nishi-Ogikubo Branch
+
+AccountType:
+  '010': Regular
+  '020': Current
+  '030': Fixed deposit
+  '040': Savings
+  '050': Special
+  '060': Tax preparation
+  '070': Deposit account for notice
+  '090': Other
+  '100': Internal management account (assets)
+  '110': Internal management account (liabilities)
+  '120': Internal management account (capital)
+  '130': Internal management account (profits)
+  '140': Internal management account (profit and loss)
+  '500': Unsettled foreign exchange debits
+  '501': Unsettled foreign exchange credit
+  '502': Temporary consumption tax receipt
+  '503': ATM usage fee
+  '504': Transfer fee
+  '505': Regular deposit interest
+  '506': Deposit at the Bank of Japan
+  '507': ​​Interest tax deposit (national tax/reconstruction tax)
+  '508': Interest tax deposit (local tax)
+  '509': Temporary receipt
+  '510': Transfer return request fee
+  '511': Temporary payment
+
+Flag:
+  'Off': '0'
+  'On': '1'

@@ -1,0 +1,134 @@
+<div
+  ref="target"
+  classes="modal-container"
+  content-class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex"
+>
+  <div class="relative mx-auto my-6 w-96" v-bind="$attrs">
+    <!--content-->
+    <div
+      class="relative flex w-full cursor-default flex-col rounded-lg border-0 bg-white shadow-lg outline-none focus:outline-none"
+    >
+      <!--header-->
+      <div
+        class="border-blueGray-200 flex items-start justify-between rounded-t border-b border-solid p-5"
+      >
+        <h3 class="text-3xl font-semibold">
+          {{user ? $t('UserEditModal.EditTitle') :
+          $t('UserEditModal.AddTitle')}}
+        </h3>
+        <span
+          class="float-right ml-auto border-0 bg-transparent p-1 text-3xl leading-none font-semibold text-black opacity-5 outline-none focus:outline-none"
+        >
+          <span
+            class="block h-6 w-6 bg-transparent text-3xl text-black opacity-5 outline-none focus:outline-none"
+          >
+            ×
+          </span>
+        </span>
+      </div>
+      <!--body-->
+      <form class="flex flex-col overflow-y-auto" @submit.prevent="onSummit">
+        <div class="flex flex-col p-6">
+          <!-- <div class="flex flex-row pt-4">
+            <label for="id" class="text-lg"
+              >{{ $t('UserDetailModal.Id') }}</label
+            >
+            <label class="text-lg ml-4">{{user.id}}</label>
+          </div> -->
+          <div class="flex flex-col pt-4">
+            <label for="name" class="text-lg"
+              >{{ $t('UserDetailModal.Name') }}</label
+            >
+            <input
+              id="name"
+              type="text"
+              placeholder="name"
+              class="focus:shadow-outline mt-1 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
+              v-model="nameField"
+            />
+            <span class="p-1 text-xs text-red-500">{{ nameError }}</span>
+          </div>
+          <div class="flex flex-col pt-4">
+            <label for="email" class="text-lg"
+              >{{ $t('UserDetailModal.Email') }}</label
+            >
+            <input
+              id="email"
+              type="email"
+              placeholder="email"
+              class="focus:shadow-outline mt-1 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
+              v-model="emailField"
+            />
+            <span class="p-1 text-xs text-red-500">{{ emailError }}</span>
+          </div>
+          <div class="flex flex-col pt-4">
+            <label for="detail" class="text-lg"
+              >{{ $t('UserDetailModal.Detail') }}</label
+            >
+            <textarea
+              id="detail"
+              placeholder="detail"
+              class="focus:shadow-outline mt-1 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
+              v-model="detailField"
+            />
+            <span class="p-1 text-xs text-red-500">{{ detailError }}</span>
+          </div>
+          <div class="flex flex-col pt-4">
+            <label for="detail" class="text-lg"
+              >{{ $t('UserDetailModal.Birthday') }}</label
+            >
+            <Datepicker
+              id="birthday"
+              class="cursor-pointer"
+              :format="datepickerFormatter"
+              :previewFormat="datepickerFormatter"
+              :placeholder="$t('UserDetailModal.BirthdayPlaceholder')"
+              :start-from="bdPickerStartFrom"
+              v-model="birthdayField"
+              :enableTimePicker="false"
+              :locale="locale"
+            ></Datepicker>
+            <span class="p-1 text-xs text-red-500">{{ birthdayError }}</span>
+          </div>
+          <div class="flex flex-col pt-4">
+            <label for="detail" class="text-lg"
+              >{{ $t('UserDetailModal.ExpireDate') }}</label
+            >
+            <Datepicker
+              id="validPeriod"
+              range
+              :format="rangeDatepickerFormatter"
+              :previewFormat="rangeDatepickerFormatter"
+              :placeholder="$t('UserDetailModal.ExpireDatePlaceholder')"
+              v-model="validPeriodField"
+              :enableTimePicker="false"
+              :locale="locale"
+            ></Datepicker>
+            <span class="p-1 text-xs text-red-500">{{ validPeriodError }}</span>
+          </div>
+        </div>
+        <!--footer-->
+        <div
+          class="border-blueGray-200 mt-2 flex items-center justify-end rounded-b border-t border-solid p-6"
+        >
+          <button
+            class="background-transparent mr-1 mb-1 px-6 py-2 text-lg font-bold text-blue-700 uppercase transition-all duration-150 ease-linear outline-none focus:outline-none"
+            type="button"
+            @click="popEditModal"
+          >
+            {{ $t('Button.CANCEL') }}
+          </button>
+          <button
+            :disabled="!formMeta.valid || loading"
+            class="background-transparent mr-1 mb-1 px-6 py-2 text-lg font-bold uppercase transition-all duration-150 ease-linear outline-none focus:outline-none"
+            :class="formMeta.valid ? 'text-blue-700' : 'text-gray-300 cursor-not-allowed'"
+            type="submit"
+          >
+            {{ $t('Button.Save') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<LoadingMask :loading="loading" />
