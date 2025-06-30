@@ -33,15 +33,15 @@ jobs:
           echo "parameter_store: ${{ fromJson(steps.load-config.outputs.github_output).parameter_store }}"
 
       - name: Run the get-aws-ps-param from actionDemo repo
-        id: get_secrets
+        id: get-aws-ps-param
         uses: TingWangPass/actionDemo/.github/actions/common/get-aws-ps-param@main
         with:
-          parameter_store_json: ${{ toJson(fromJson(steps.load-config.outputs.github_output).parameter_store) }}
+          input_json: ${{ toJson(fromJson(steps.load-config.outputs.github_output).parameter_store) }}
 
       - name: Show Output2
         run: |
           echo "Outputs:"
-          echo "user: ${{ fromJson(steps.get_secrets.outputs.github_output).user }}"
-          echo "password: ${{ fromJson(steps.get_secrets.outputs.github_output).password }}"
+          echo "user: ${{ fromJson(steps.get-aws-ps-param.outputs.github_output).user }}"
+          echo "password: ${{ fromJson(steps.get-aws-ps-param.outputs.github_output).password }}"
 
 
