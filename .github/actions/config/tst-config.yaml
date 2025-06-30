@@ -1,4 +1,4 @@
-jdk: 21  
+jdk: jdk21
 slack_teamDomain: test
 slack_webhookUrl: testURL
 parameter_store:
