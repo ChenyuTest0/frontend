@@ -1,4 +1,7 @@
-jdk: jdk21
+jdk: java-21-amazon-corretto-devel
+nodejs: 20.11.1
+pnpm: 10.12.4
+gradle: 8.14.1
 slack_teamDomain: test
 slack_webhookUrl: testURL
 parameter_store:

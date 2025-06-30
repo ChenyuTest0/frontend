@@ -44,4 +44,13 @@ jobs:
           echo "user: ${{ fromJson(steps.get-aws-ps-param.outputs.github_output).user }}"
           echo "password: ${{ fromJson(steps.get-aws-ps-param.outputs.github_output).password }}"
 
+      - name: Run the get-aws-ps-param from actionDemo repo
+        id: init-frontend
+        uses: TingWangPass/actionDemo/.github/actions/common/init-frontend@main
+        with:
+          jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
+          nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
+          pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
+          # gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
+
 
