@@ -1,11 +1,6 @@
-dynamoDB: test  
-test1:
-  user: test1_user
-  password: test1_password
-test2:
-  user: test2_user
-  password: test2_password
-# test2:
-#   user1: 
-#     name: test2_user
-#     password: test2_password
+jdk: 21  
+slack_teamDomain: test
+slack_webhookUrl: testURL
+parameter_store:
+  user: userID
+  password: passwordID
