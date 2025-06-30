@@ -22,7 +22,7 @@ jobs:
         id: load-config
         uses: TingWangPass/actionDemo/.github/actions/common/load-config@main
         with:
-          file: .github/actions/config/tst-config.yaml
+          config_file: .github/actions/config/tst-config.yaml
 
       - name: Show Output
         run: |
