@@ -48,9 +48,9 @@ jobs:
         id: init-frontend
         uses: TingWangPass/actionDemo/.github/actions/common/init-frontend@main
         with:
-          jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
           nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
           pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
-          # gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
+          jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
+          gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
 
 

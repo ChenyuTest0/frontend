@@ -1,4 +1,4 @@
-jdk: java-21-amazon-corretto-devel
+jdk: 21
 nodejs: 20.11.1
 pnpm: 10.12.4
 gradle: 8.14.1
