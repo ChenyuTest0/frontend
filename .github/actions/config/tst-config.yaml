@@ -1,7 +1,7 @@
 jdk: 21
-nodejs: 20.11
-pnpm: 10.12
-gradle: 8.14
+nodejs: 20
+pnpm: 10
+gradle: 8
 slack_teamDomain: test
 slack_webhookUrl: testURL
 parameter_store:
