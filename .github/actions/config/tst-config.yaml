@@ -4,3 +4,7 @@ slack_webhookUrl: testURL
 parameter_store:
   user: userID
   password: passwordID
+secret_manager:
+  user: 
+    adop: ID1
+    admin: ID2
