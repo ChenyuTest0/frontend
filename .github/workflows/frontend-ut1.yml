@@ -24,20 +24,24 @@ jobs:
         with:
           config_file: .github/actions/config/tst-config.yaml
 
-
-      - name: Show Output
+      - name: Show Output1
         run: |
           echo "Outputs:"
           echo "JDK version: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}"
           echo "slack_teamDomain: ${{ fromJson(steps.load-config.outputs.github_output).slack_teamDomain }}"
           echo "slack_webhookUrl: ${{ fromJson(steps.load-config.outputs.github_output).slack_webhookUrl }}"
           echo "parameter_store: ${{ fromJson(steps.load-config.outputs.github_output).parameter_store }}"
-        
-      # - name: Show Output
-      #   run: |
-      #     echo "Outputs:"
-      #     echo "jdk: ${{ steps.load-config.outputs.jdk }}"
-      #     echo "slack_teamDomain: ${{ steps.load-config.outputs.slack_teamDomain }}"  # アンダースコア形式で表示
-      #     echo "slack_webhookUrl: ${{ steps.load-config.outputs.slack_webhookUrl }}"  # アンダースコア形式で表示
-      #     echo "parameter_store: ${{ steps.load-config.outputs.parameter_store }}"  # test1 オブジェクト全体を表示
-      #     echo "secret_manager: ${{ steps.load-config.outputs.secret_manager }}"  # test1 オブジェクト全体を表示
+
+      - name: Run the get-aws-ps-param from actionDemo repo
+        id: get_secrets
+        uses: TingWangPass/actionDemo/.github/actions/common/get-aws-ps-param@main
+        with:
+          parameter_store_json: ${{ toJson(fromJson(steps.load-config.outputs.github_output).parameter_store) }}
+
+      - name: Show Output2
+        run: |
+          echo "Outputs:"
+          echo "user: ${{ fromJson(steps.get_secrets.outputs.github_output).user }}"
+          echo "password: ${{ fromJson(steps.get_secrets.outputs.github_output).password }}"
+
+
