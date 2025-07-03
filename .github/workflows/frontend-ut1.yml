@@ -56,6 +56,9 @@ jobs:
       - name: Run frontend code analysis
         id: frontend-code-quality-analysis
         uses: ChenyuTest0/commonActions/.github/actions/common/frontend-code-quality-analysis@main
+        env:
+          SONAR_TOKEN: dummy-token
+          SONAR_HOST_URL: http://dummy-sonarqube.localdomain:9000
         with:
           nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
           pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
