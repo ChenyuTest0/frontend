@@ -15,7 +15,7 @@ jobs:
     steps:
       # 現在のリポジトリをチェックアウト
       - name: Checkout current repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # `actions/common/load-config/action.yaml` のアクションを実行
       - name: Run the action from actionDemo repo
@@ -53,4 +53,11 @@ jobs:
           jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
           gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
 
-
+      - name: Run frontend code analysis
+        id: frontend-code-quality-analysis
+        uses: ChenyuTest0/commonActions/.github/actions/common/frontend-code-quality-analysis@main
+        with:
+          nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
+          pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
+          jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
+          gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
