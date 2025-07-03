@@ -24,13 +24,13 @@ jobs:
         with:
           config_file: .github/actions/config/tst-config.yaml
 
-      - name: Show Output1
-        run: |
-          echo "Outputs:"
-          echo "JDK version: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}"
-          echo "slack_teamDomain: ${{ fromJson(steps.load-config.outputs.github_output).slack_teamDomain }}"
-          echo "slack_webhookUrl: ${{ fromJson(steps.load-config.outputs.github_output).slack_webhookUrl }}"
-          echo "parameter_store: ${{ fromJson(steps.load-config.outputs.github_output).parameter_store }}"
+      # - name: Show Output1
+      #   run: |
+      #     echo "Outputs:"
+      #     echo "JDK version: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}"
+      #     echo "slack_teamDomain: ${{ fromJson(steps.load-config.outputs.github_output).slack_teamDomain }}"
+      #     echo "slack_webhookUrl: ${{ fromJson(steps.load-config.outputs.github_output).slack_webhookUrl }}"
+      #     echo "parameter_store: ${{ fromJson(steps.load-config.outputs.github_output).parameter_store }}"
 
       # - name: Run the get-aws-ps-param from actionDemo repo
       #   id: get-aws-ps-param
