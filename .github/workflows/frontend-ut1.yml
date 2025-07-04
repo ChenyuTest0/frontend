@@ -24,6 +24,15 @@ jobs:
         with:
           config_file: .github/actions/config/tst-config.yaml@tst
 
+      - name: Extract environment setup
+        id: config
+        run: |
+          echo "nodejs=$(jq -r '.nodejs' <<< '${{ steps.load-config.outputs.github_output }}')" >> $GITHUB_OUTPUT
+          echo "pnpm=$(jq -r '.pnpm' <<< '${{ steps.load-config.outputs.github_output }}')" >> $GITHUB_OUTPUT
+          echo "jdk=$(jq -r '.jdk' <<< '${{ steps.load-config.outputs.github_output }}')" >> $GITHUB_OUTPUT
+          echo "gradle=$(jq -r '.gradle' <<< '${{ steps.load-config.outputs.github_output }}')" >> $GITHUB_OUTPUT        
+      
+      # temperary for test
       - name: Show Output1
         run: |
           echo "Outputs:"
@@ -32,6 +41,7 @@ jobs:
           echo "slack_webhookUrl: ${{ fromJson(steps.load-config.outputs.github_output).slack_webhookUrl }}"
           echo "parameter_store: ${{ fromJson(steps.load-config.outputs.github_output).parameter_store }}"
 
+      # temperary comment out
       # - name: Run the get-aws-ps-param from actionDemo repo
       #   id: get-aws-ps-param
       #   uses: TingWangPass/actionDemo/.github/actions/common/get-aws-ps-param@main
@@ -48,10 +58,10 @@ jobs:
         id: init-frontend
         uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/init-frontend/action.yaml@tst
         with:
-          nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
-          pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
-          jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
-          gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
+          nodejs: ${{ steps.config.outputs.nodejs }}
+          pnpm: ${{ steps.config.outputs.pnpm }}
+          jdk: ${{ steps.config.outputs.jdk }}
+          gradle: ${{ steps.config.outputs.gradle }}
 
       - name: 'Run ViTest'
         id: vitest
@@ -75,10 +85,10 @@ jobs:
           SONAR_TOKEN: dummy-token
           SONAR_HOST_URL: http://dummy-sonarqube.localdomain:9000
         with:
-          nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
-          pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
-          jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
-          gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
+          nodejs: ${{ steps.config.outputs.nodejs }}
+          pnpm: ${{ steps.config.outputs.pnpm }}
+          jdk: ${{ steps.config.outputs.jdk }}
+          gradle: ${{ steps.config.outputs.gradle }}
         continue-on-error: true
 
       - name: Run sca sast analysis
@@ -87,18 +97,20 @@ jobs:
         # temperary for test
         uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/sca-sast-analysis/action.yaml@tst
         with:
-          nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
-          pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
-          jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
-          gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
+          nodejs: ${{ steps.config.outputs.nodejs }}
+          pnpm: ${{ steps.config.outputs.pnpm }}
+          jdk: ${{ steps.config.outputs.jdk }}
+          gradle: ${{ steps.config.outputs.gradle }}
 
       - name: Generate AsciiDoc
         id: generate-asciidoc
         if: steps.frontend-code-quality-analysis.outputs.process_result == '0' && steps.sca-sast-analysis.outputs.process_result == '0'
-        uses: SECOM-BP/bizcom-middle-template-api/build.gradle@tst
+        run: |
+          echo "Generating AsciiDoc..."
+          chmod +x gradlew && ./gradlew asciidoc
 
-      # Step: If tests failed, upload to Nexus
-      - name: Upload to Nexus due to test failure
+      # temperary path, need to change
+      - name: Upload reports to Nexus
         if: always()
         shell: bash
         run: |
