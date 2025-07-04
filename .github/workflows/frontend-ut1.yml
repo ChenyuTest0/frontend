@@ -18,19 +18,19 @@ jobs:
         uses: actions/checkout@v4
 
       # `actions/common/load-config/action.yaml` のアクションを実行
-      - name: Run the action from actionDemo repo
+      - name: Run the action from bizcom common manage cicd repo
         id: load-config
-        uses: TingWangPass/actionDemo/.github/actions/common/load-config@main
+        uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/load-config@prd
         with:
-          config_file: .github/actions/config/tst-config.yaml
+          config_file: .github/actions/config/tst-config.yaml@tst
 
-      # - name: Show Output1
-      #   run: |
-      #     echo "Outputs:"
-      #     echo "JDK version: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}"
-      #     echo "slack_teamDomain: ${{ fromJson(steps.load-config.outputs.github_output).slack_teamDomain }}"
-      #     echo "slack_webhookUrl: ${{ fromJson(steps.load-config.outputs.github_output).slack_webhookUrl }}"
-      #     echo "parameter_store: ${{ fromJson(steps.load-config.outputs.github_output).parameter_store }}"
+      - name: Show Output1
+        run: |
+          echo "Outputs:"
+          echo "JDK version: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}"
+          echo "slack_teamDomain: ${{ fromJson(steps.load-config.outputs.github_output).slack_teamDomain }}"
+          echo "slack_webhookUrl: ${{ fromJson(steps.load-config.outputs.github_output).slack_webhookUrl }}"
+          echo "parameter_store: ${{ fromJson(steps.load-config.outputs.github_output).parameter_store }}"
 
       # - name: Run the get-aws-ps-param from actionDemo repo
       #   id: get-aws-ps-param
@@ -46,16 +46,31 @@ jobs:
 
       - name: Run frontend setup
         id: init-frontend
-        uses: TingWangPass/actionDemo/.github/actions/common/init-frontend@main
+        uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/init-frontend/action.yaml@tst
         with:
           nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
           pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
           jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
           gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
 
+      - name: 'Run ViTest'
+        id: vitest
+        run: |
+          npx vitest --coverage.enabled true
+          echo "process_result=$STATUS" >> $GITHUB_OUTPUT
+
+      - name: Build pnpm
+        id: build-pnpm
+        if: steps.vitest.outputs.result == '0'
+        run: |
+          echo "Using app_properties_env: $app_properties_env"
+          pnpm build             
+
       - name: Run frontend code analysis
         id: frontend-code-quality-analysis
-        uses: ChenyuTest0/commonActions/.github/actions/common/frontend-code-quality-analysis@main
+        if: steps.build-pnpm.outputs.result == '0'
+        uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/frontend-code-quality-analysis/action.yaml@feature/frontend-code-quality-analysis
+        # temperary for test
         env:
           SONAR_TOKEN: dummy-token
           SONAR_HOST_URL: http://dummy-sonarqube.localdomain:9000
@@ -64,3 +79,38 @@ jobs:
           pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
           jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
           gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
+        continue-on-error: true
+
+      - name: Run sca sast analysis
+        id: sca-sast-analysis
+        if: always() && steps.frontend-code-quality-analysis.outputs.process_result != ''
+        # temperary for test
+        uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/sca-sast-analysis/action.yaml@tst
+        with:
+          nodejs: ${{ fromJson(steps.load-config.outputs.github_output).nodejs }}
+          pnpm: ${{ fromJson(steps.load-config.outputs.github_output).pnpm }}
+          jdk: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}
+          gradle: ${{ fromJson(steps.load-config.outputs.github_output).gradle }}
+
+      - name: Generate AsciiDoc
+        id: generate-asciidoc
+        if: steps.frontend-code-quality-analysis.outputs.process_result == '0' && steps.sca-sast-analysis.outputs.process_result == '0'
+        uses: SECOM-BP/bizcom-middle-template-api/build.gradle@tst
+
+      # Step: If tests failed, upload to Nexus
+      - name: Upload to Nexus due to test failure
+        if: always()
+        shell: bash
+        run: |
+          echo "[NEXUS UPLOAD] Tests failed. Attempting to upload existing artifacts..."
+          
+          ARTIFACT_PATH="./dist/my-artifact.tar.gz"
+
+          if [ -f "$ARTIFACT_PATH" ]; then
+            echo "Found artifact: $ARTIFACT_PATH"
+            curl -u "$NEXUS_USER:$NEXUS_PASSWORD" \
+                --upload-file "$ARTIFACT_PATH" \
+                https://your-nexus-host/repository/your-repo/my-artifact.tar.gz
+          else
+            echo "No artifact found at $ARTIFACT_PATH, skipping upload."
+          fi
