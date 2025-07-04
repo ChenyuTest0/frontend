@@ -3,10 +3,10 @@ name: Run Action from Another Repo
 on:
   push:
     branches:
-      - main  # mainブランチにpushされたときにトリガーされます
+      - main  
   pull_request:
     branches:
-      - main  # PRがmainに対して作成されたときにトリガーされます
+      - main  
   workflow_dispatch:
 
 jobs:
@@ -22,24 +22,7 @@ jobs:
         id: load-config
         uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/load-config@prd
         with:
-          config_file: .github/actions/config/tst-config.yaml@tst
-
-      - name: Extract environment setup
-        id: config
-        run: |
-          echo "nodejs=$(jq -r '.nodejs' <<< '${{ steps.load-config.outputs.github_output }}')" >> $GITHUB_OUTPUT
-          echo "pnpm=$(jq -r '.pnpm' <<< '${{ steps.load-config.outputs.github_output }}')" >> $GITHUB_OUTPUT
-          echo "jdk=$(jq -r '.jdk' <<< '${{ steps.load-config.outputs.github_output }}')" >> $GITHUB_OUTPUT
-          echo "gradle=$(jq -r '.gradle' <<< '${{ steps.load-config.outputs.github_output }}')" >> $GITHUB_OUTPUT        
-      
-      # temperary for test
-      - name: Show Output1
-        run: |
-          echo "Outputs:"
-          echo "JDK version: ${{ fromJson(steps.load-config.outputs.github_output).jdk }}"
-          echo "slack_teamDomain: ${{ fromJson(steps.load-config.outputs.github_output).slack_teamDomain }}"
-          echo "slack_webhookUrl: ${{ fromJson(steps.load-config.outputs.github_output).slack_webhookUrl }}"
-          echo "parameter_store: ${{ fromJson(steps.load-config.outputs.github_output).parameter_store }}"
+          config_file: .github/actions/config/tst-config.yaml@tst   
 
       # temperary comment out
       # - name: Run the get-aws-ps-param from actionDemo repo
@@ -57,11 +40,6 @@ jobs:
       - name: Run frontend setup
         id: init-frontend
         uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/init-frontend/action.yaml@tst
-        with:
-          nodejs: ${{ steps.config.outputs.nodejs }}
-          pnpm: ${{ steps.config.outputs.pnpm }}
-          jdk: ${{ steps.config.outputs.jdk }}
-          gradle: ${{ steps.config.outputs.gradle }}
 
       - name: 'Run ViTest'
         id: vitest
@@ -84,11 +62,6 @@ jobs:
         env:
           SONAR_TOKEN: dummy-token
           SONAR_HOST_URL: http://dummy-sonarqube.localdomain:9000
-        with:
-          nodejs: ${{ steps.config.outputs.nodejs }}
-          pnpm: ${{ steps.config.outputs.pnpm }}
-          jdk: ${{ steps.config.outputs.jdk }}
-          gradle: ${{ steps.config.outputs.gradle }}
         continue-on-error: true
 
       - name: Run sca sast analysis
@@ -96,11 +69,6 @@ jobs:
         if: always() && steps.frontend-code-quality-analysis.outputs.process_result != ''
         # temperary for test
         uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/sca-sast-analysis/action.yaml@tst
-        with:
-          nodejs: ${{ steps.config.outputs.nodejs }}
-          pnpm: ${{ steps.config.outputs.pnpm }}
-          jdk: ${{ steps.config.outputs.jdk }}
-          gradle: ${{ steps.config.outputs.gradle }}
 
       - name: Generate AsciiDoc
         id: generate-asciidoc
