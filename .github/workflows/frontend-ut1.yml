@@ -44,7 +44,7 @@ jobs:
       - name: 'Run ViTest'
         id: vitest
         run: |
-          npx vitest --coverage.enabled true
+          pnpm run test --coverage.enabled true
           echo "process_result=$STATUS" >> $GITHUB_OUTPUT
 
       - name: Build pnpm
