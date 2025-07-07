@@ -58,10 +58,6 @@ jobs:
         id: frontend-code-quality-analysis
         if: steps.build-pnpm.outputs.result == '0'
         uses: SECOM-BP/bizcom-common-manage-cicd/.github/actions/common/frontend-code-quality-analysis/action.yaml@feature/frontend-code-quality-analysis
-        # temperary for test
-        env:
-          SONAR_TOKEN: dummy-token
-          SONAR_HOST_URL: http://dummy-sonarqube.localdomain:9000
         continue-on-error: true
 
       - name: Run sca sast analysis
